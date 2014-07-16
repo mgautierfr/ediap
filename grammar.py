@@ -65,7 +65,7 @@ def binaryOp():
     name = operator(p(operator_char, binary_operator_chars))
     arg2 = expr()
     end = pos()
-    return BinaryOp(name, [arg1, arg2], start, pos).merge()
+    return BinaryOp(name, [arg1, arg2], start, end).merge()
 
 def parenthetical():
     start = pos()
