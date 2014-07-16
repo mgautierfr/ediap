@@ -1,6 +1,4 @@
-def _update_coord(x, y, context):
-    cwidth, cheight = context['canvas'].winfo_width(), context['canvas'].winfo_height()
-    return x/context['x_canvas_range'][1]*cwidth, y/context['y_canvas_range'][1]*cheight
+import actors as _actors
 
 class _IntArgument:
     def __init__(self, help, range=(None, None), step=1):
@@ -21,22 +19,15 @@ class ellipse:
     
     def __init__(self, context):
         self.context = context
-        self.arguments = [_IntArgument("x position at the center"),
-                          _IntArgument("y position at the center"),
+        self.arguments = [_IntArgument("x position of the top left corner"),
+                          _IntArgument("y position of the top left corner"),
                           _IntArgument("width of the ellipse"),
                           _IntArgument("height of the ellipse")
                          ]
         
 
     def __call__(self, x, y, w, h):
-        left = x - w/2 - self.context['x_canvas_range'][0]
-        right = x + w/2 - self.context['x_canvas_range'][0]
-        top = y - h/2 - self.context['y_canvas_range'][0]
-        bottom = y + h/2 - self.context['y_canvas_range'][0]
-        left, top = _update_coord(left, top, self.context)
-        right, bottom = _update_coord(right, bottom, self.context)
-        print("drowing at", left, top, right, bottom)
-        item = self.context['canvas'].create_oval(left, top, right, bottom, fill=self.context['fillColor'])
+        return _actors.Ellipse(self.context, x, y, w, h)
 
 
 class rectangle:
@@ -52,15 +43,7 @@ class rectangle:
         
 
     def __call__(self, x, y, w, h):
-        cwidth, cheight = self.context['canvas'].winfo_width(), self.context['canvas'].winfo_height()
-        left = x
-        right = x+w
-        top = y
-        bottom = y+h
-        left, top = _update_coord(left, top, self.context)
-        right, bottom = _update_coord(right, bottom, self.context)
-        print("drowing at", left, top, right, bottom)
-        item = self.context['canvas'].create_rectangle(left, top, right, bottom, fill=self.context['fillColor'])
+        return _actors.Rectangle(self.context, x, y, w, h)
 
 class fill:
     help = "Change the color of the fill parameter"
@@ -74,7 +57,7 @@ class fill:
         
 
     def __call__(self, r, v, b):
-        self.context['fillColor'] = "#%02x%02x%02x"%(r,v,b)
+        return _actors.Fill(self.context, r, v, b)
 
 
 class view:
@@ -89,7 +72,4 @@ class view:
                          ]
 
     def __call__(self, left, top, width, height):
-        self.context['x_canvas_range'][0] = left
-        self.context['y_canvas_range'][0] = top
-        self.context['x_canvas_range'][1] = width
-        self.context['y_canvas_range'][1] = height
+        return _actors.View(self.context, left, top, width, height)

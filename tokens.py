@@ -33,6 +33,16 @@ class Call(Token):
         self.args = args
 
 class BinaryOp(Call):
+    binary_ops = {
+        '+' : lambda x, y : x+y,
+        '-' : lambda x, y : x-y,
+        '/' : lambda x, y : x/y,
+        '*' : lambda x, y : x*y,
+        }
+    def __init__(self, name, args, start, end):
+        Call.__init__(self, name, args, start, end)
+        print("binop %s %s %s %s"%(self.name, self.args, self._start, self._end))
+
     @property
     def precedence(self):
         return operators.index(self.name.v)
@@ -47,13 +57,24 @@ class BinaryOp(Call):
         else:
             return self
 
+    def execute(self):
+        args = [n.execute() for n in self.args]
+        return BinaryOp.binary_ops[self.name.v](*args)
+
+    def __str__(self):
+        return "%s %s %s %s"%(self.name, self.args, self._start, self._end)
+
 class Value(Token):
     def __init__(self, value, start, end):
         Token.__init__(self, start, end)
         self.v  = value
 
+    def execute(self):
+        return self.v
+
 class Paren(Value):
-    pass
+    def execute(self):
+        return self.v.execute()
 
 class Identifier(Value):
     pass

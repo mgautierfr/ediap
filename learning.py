@@ -13,24 +13,35 @@ import picoparse.text
 def int_scale(value, neg):
     return value + (1-2*neg)
 
-class Tagger:
-    def __init__(self):
+class Visitor:
+    def __init__(self, namespace=None):
+        if namespace is None:
+            namespace = {}
+        self.namespace = namespace
         self.context = []
+        self.directChild = False
 
-    def tag(self, node):
-        sub_executor = getattr(self, "tag_%s"%node.klass)
+    def visit(self, node):
+        sub_executor = getattr(self, "visit_%s"%node.klass)
         return sub_executor(node)
 
-    def tag_Program(self, node):
-        for part in node.parts:
-            self.tag(part)
+    def execute(self, node):
+        sub_executor = getattr(self, "execute_%s"%node.klass)
+        return sub_executor(node)
 
-    def tag_Call(self, node):
+    def visit_Program(self, node):
+        for part in node.parts:
+            self.visit(part)
+
+    def visit_Call(self, node):
+        actor = self.execute(node)
+        if actor:
+            actors.setdefault(node._start.row, []).append(actor)
         function_name = node.name.v
         self.tag_function(function_name, node.name._start.row, node.name.start, node.name.end)
         for index, argument in enumerate(node.args):
-            self.context.append(node)
-            self.tag_argument(function_name, index, argument)
+            self.context.append((actor, self.namespace[function_name].arguments[index]))
+            self.visit_argument(function_name, index, argument)
             self.context.pop()
         
 
@@ -40,56 +51,55 @@ class Tagger:
         text.tag_configure(tag_name, foreground="red")
         text.tag_bind(tag_name, "<Enter>", lambda e: helpv.set(functions[function_name].help))
 
-    def tag_argument(self, function_name, index, node):
-        visitor_name = "tag_arg_%s"%node.klass
-        if hasattr(self, visitor_name):
-            return getattr(self, visitor_name)(function_name, index, node)
-        return self.tag(node)
-
-    def tag_arg_Int(self, function_name, index, node):
+    def visit_argument(self, function_name, index, node):
+        local_context = self.context[:]
         def on_enter(event):
-            global target
-            print("setting target")
-            target = NodeChanger(node, tag_name, event.x, functions[function_name].arguments[index].scale)
-            text["cursor"] = "sb_h_double_arrow"
-            helpv.set(functions[function_name].arguments[index].help)
+            helpv.set(local_context[-1][1].help)
+            [actor.show_helper(index) for actor in actors[node._start.row]]
         def on_leave(event):
-            global target
-            print("unset target")
-            target = None
-            text["cursor"] = ""
+            helpv.set("")
+            [actor.hide_helper() for actor in actors[node._start.row]]
         tag_name = "%s_%d_arg_%d"%(function_name, node._start.row, index)
         start_index = node.start
         end_index = node.end
         text.tag_add(tag_name, start_index, end_index)
         text.tag_bind(tag_name, "<Enter>", on_enter)
         text.tag_bind(tag_name, "<Leave>", on_leave)
-        text.tag_configure(tag_name, foreground="blue")
+        text.tag_configure(tag_name, background="#CCFFCC")
+        self.directChild = True
+        self.visit(node)
+        self.directChild = False
 
-    def tag_Paren(self, node):
-        self.tag(node.v)
+    def visit_Paren(self, node):
+        self.visit(node.v)
 
-    def tag_BinaryOp(self, node):
-        [self.tag(n) for n in node.args]
+    def visit_BinaryOp(self, node):
+        self.directChild = False
+        [self.visit(n) for n in node.args]
 
-    def tag_Int(self, node):
+    def visit_Int(self, node):
         def on_enter(event):
             global target
-            print("setting target")
-            target = NodeChanger(node, tag_name, event.x, int_scale)
+            target = NodeChanger(node, tag_name, event.x, modifier)
             text["cursor"] = "sb_h_double_arrow"
         def on_leave(event):
             global target
-            print("unset target")
             target = None
             text["cursor"] = ""
         tag_name = "num_%d_%d"%(node._start.row, node._start.col)
         start_index = node.start
         end_index = node.end
+        modifier = int_scale
+        if self.directChild:
+            modifier = self.context[-1][1].scale
         text.tag_add(tag_name, start_index, end_index)
-        text.tag_bind(tag_name, "<Enter>", on_enter)
-        text.tag_bind(tag_name, "<Leave>", on_leave)
+        text.tag_bind(tag_name, "<Enter>", on_enter, add="+")
+        text.tag_bind(tag_name, "<Leave>", on_leave, add="+")
         text.tag_configure(tag_name, foreground="blue")
+
+    def execute_Call(self, node):
+        function = self.namespace[node.name.v]
+        return function(*node.args)
 
 
 class NodeChanger:
@@ -110,7 +120,7 @@ class NodeChanger:
         print("replace", self.node.start, self.node.end, val, self.tag_name)
         text.replace(self.node.start, self.node.end, val, self.tag_name)
         self.node._end.col = self.node._start.col + len("%s"%val)
-        execute_tree()
+        [actor.update() for actor in actors[self.node._start.row]]
         return "break"
         
 
@@ -123,45 +133,6 @@ tree = None
 
 context = {'fillColor': "#000000", 'x_canvas_range':[0, 100], 'y_canvas_range':[0, 100]}
 
-binary_ops = {
-'+' : lambda x, y : x+y,
-'-' : lambda x, y : x-y,
-'/' : lambda x, y : x/y,
-'*' : lambda x, y : x*y,
-}
-
-class Executor:
-    def __init__(self, namespace=None):
-        if namespace is None:
-            namespace = {}
-        self.namespace = namespace
-
-    def execute(self, node):
-        sub_executor = getattr(self, "execute_%s"%node.klass)
-        return sub_executor(node)
-
-    def execute_Program(self, node):
-        for part in node.parts:
-            self.execute(part)
-
-    def execute_Call(self, node):
-        function = self.namespace[node.name.v]
-        args = [self.execute(n) for n in node.args]
-        return function(*args)
-
-    def execute_BinaryOp(self, node):
-        args = [self.execute(n) for n in node.args]
-        return binary_ops[node.name.v](*args)
-
-    def execute_Paren(self, node):
-        return self.execute(node.v)
-    
-    def execute_Int(self, node):
-        return node.v
-
-    def execute_Float(self, node):
-        return node.v
-    
 
 def on_keyRelease(*args):
     update_from_text()
@@ -174,16 +145,15 @@ def update_from_text():
     #    tree = grammar.parse(content)
     #except picoparse.NoMatch:
     #    tree = tokens.Program([], picoparse.text.Pos(0, 0), picoparse.text.Pos(0, 0))
-    tag_text_from_tree()
     execute_tree()
 
 def execute_tree():
+    global actors
     canvas.delete("all")
-    Executor(functions).execute(tree)
-
-def tag_text_from_tree():
     [text.tag_remove(n, "1.0", "end") for n in text.tag_names()]
-    Tagger().tag(tree)
+    actors = {}
+    Visitor(functions).visit(tree)
+    [actor.act() for linenb in sorted(actors.keys()) for actor in actors[linenb]]
 
 def on_motion(event):
     if target is None:
