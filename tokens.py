@@ -1,6 +1,9 @@
 
+operators = ['-','+','*','/']
+
 
 class Token:
+    precedence = 1000
     def __init__(self, start, end):
         self._start = start
         self._end   = end
@@ -29,10 +32,28 @@ class Call(Token):
         self.name = name
         self.args = args
 
+class BinaryOp(Call):
+    @property
+    def precedence(self):
+        return operators.index(self.name.v)
+
+    def merge(self):
+        left = self.args[0]
+        right = self.args[1]
+        if self.precedence >= right.precedence:
+            self.args[1] = right.args[0]
+            right.args[0] = self
+            return right
+        else:
+            return self
+
 class Value(Token):
     def __init__(self, value, start, end):
         Token.__init__(self, start, end)
         self.v  = value
+
+class Paren(Value):
+    pass
 
 class Identifier(Value):
     pass
@@ -42,3 +63,4 @@ class Int(Value):
 
 class Float(Value):
     pass
+

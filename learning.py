@@ -44,6 +44,7 @@ class Tagger:
         visitor_name = "tag_arg_%s"%node.klass
         if hasattr(self, visitor_name):
             return getattr(self, visitor_name)(function_name, index, node)
+        return self.tag(node)
 
     def tag_arg_Int(self, function_name, index, node):
         def on_enter(event):
@@ -65,9 +66,13 @@ class Tagger:
         text.tag_bind(tag_name, "<Leave>", on_leave)
         text.tag_configure(tag_name, foreground="blue")
 
-    def visit_Num(self, node, neg=False):
-        if self.context[-1][0] == 'Call':
-            return self.visit_arg_Num(self.context[-1][1], self.context[-1][2], node)
+    def tag_Paren(self, node):
+        self.tag(node.v)
+
+    def tag_BinaryOp(self, node):
+        [self.tag(n) for n in node.args]
+
+    def tag_Int(self, node):
         def on_enter(event):
             global target
             print("setting target")
@@ -78,13 +83,9 @@ class Tagger:
             print("unset target")
             target = None
             text["cursor"] = ""
-        tag_name = "num_%d_%d"%(node.lineno, node.col_offset)
-        start_index = "%d.%d"%(node.lineno, node.col_offset)
-        val = node.n
-        if neg:
-            start_index = "%s - 1c"%start_index
-            val *= -1
-        end_index = "%s + %d c"%(start_index, len("%d"%val))
+        tag_name = "num_%d_%d"%(node._start.row, node._start.col)
+        start_index = node.start
+        end_index = node.end
         text.tag_add(tag_name, start_index, end_index)
         text.tag_bind(tag_name, "<Enter>", on_enter)
         text.tag_bind(tag_name, "<Leave>", on_leave)
@@ -122,6 +123,13 @@ tree = None
 
 context = {'fillColor': "#000000", 'x_canvas_range':[0, 100], 'y_canvas_range':[0, 100]}
 
+binary_ops = {
+'+' : lambda x, y : x+y,
+'-' : lambda x, y : x-y,
+'/' : lambda x, y : x/y,
+'*' : lambda x, y : x*y,
+}
+
 class Executor:
     def __init__(self, namespace=None):
         if namespace is None:
@@ -141,7 +149,13 @@ class Executor:
         args = [self.execute(n) for n in node.args]
         return function(*args)
 
+    def execute_BinaryOp(self, node):
+        args = [self.execute(n) for n in node.args]
+        return binary_ops[node.name.v](*args)
 
+    def execute_Paren(self, node):
+        return self.execute(node.v)
+    
     def execute_Int(self, node):
         return node.v
 
@@ -155,10 +169,11 @@ def on_keyRelease(*args):
 def update_from_text():
     global tree
     content = text.get("1.0", "end")
-    try:
-        tree = grammar.parse(content)
-    except picoparse.NoMatch:
-        tree = tokens.Program([], picoparse.text.Pos(0, 0), picoparse.text.Pos(0, 0))
+    tree = grammar.parse(content)
+    #try:
+    #    tree = grammar.parse(content)
+    #except picoparse.NoMatch:
+    #    tree = tokens.Program([], picoparse.text.Pos(0, 0), picoparse.text.Pos(0, 0))
     tag_text_from_tree()
     execute_tree()
 
@@ -197,7 +212,7 @@ def main():
     text.bind("<Button1-ButtonRelease>", on_release)
     text.insert("1.0", """view(0, 0, 100, 100)
 fill(0, 0, 255)
-ellipse(10, -10, 10, 10)
+ellipse(10, 10+10, 10, 10)
 fill(255, 0, 0)
 ellipse(50, 50, 50, 30)
 """)

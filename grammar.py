@@ -5,11 +5,15 @@ from picoparse.text import run_text_parser, newline
 from tokens import *
 
 reserved_words = []
+binary_operator_chars = "+-/*"
 
 as_string = p(compose, lambda iter_: u''.join(iter_))
 whitespace_char = p(one_of, " ")
 whitespace = as_string(p(many, whitespace_char))
 whitespace1 = as_string(p(many1, whitespace_char))
+
+def operator_char(operator_chars):
+    return one_of(operator_chars)
 
 def identifier_char1():
     return satisfies(lambda l: l.isalpha() or l == "_")
@@ -33,7 +37,6 @@ def number():
     start = pos()
     sign = optional(p(one_of, "+-"), "+")
     lead = u''.join(many1(digit))
-    commit()
     if optional(p(one_of, '.')):
         trail = u''.join(many1(digit))
         end = pos()
@@ -46,8 +49,38 @@ def number():
     end = pos()
     return type_(v, start, end)
 
-def value():
-    return number()
+@tri
+def operator(operator_char):
+  whitespace()
+  start = pos()
+  #not_followed_by(p(choice, *[p(reserved_op, op) for op in reserved_operators]))
+  name = u''.join(many1(operator_char))
+  end = pos()
+  return Identifier(name, start, end)
+
+@tri
+def binaryOp():
+    start = pos()
+    arg1 = term()
+    name = operator(p(operator_char, binary_operator_chars))
+    arg2 = expr()
+    end = pos()
+    return BinaryOp(name, [arg1, arg2], start, pos).merge()
+
+def parenthetical():
+    start = pos()
+    special("(")
+    n = expr()
+    special(")")
+    end = pos()
+    return Paren(n, start, end)
+
+def term():
+    return choice(parenthetical, number)
+
+@tri
+def expr():
+    return choice(binaryOp, term)
 
 @tri
 def reserved(name):
@@ -73,7 +106,7 @@ def functioncall():
     start = pos()
     name = identifier()
     special('(')
-    arguments = sep(value, p(special, ','))
+    arguments = sep(expr, p(special, ','))
     special(')')
     end = pos()
     return Call(name, arguments, start, end)
