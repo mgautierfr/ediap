@@ -1,5 +1,7 @@
-from picoparse import choice, p, one_of, many, many1, tri, eof, not_followed_by, satisfies, string, commit, optional, sep1, sep, desc, not_one_of, compose, pos
+from picoparse import choice, p, one_of, many, many1, tri, eof, not_followed_by, satisfies, string, commit, optional, sep1, sep, desc, not_one_of, compose, EndOfFile
 from picoparse.text import run_text_parser, newline
+
+from picoparse import pos as _pos
 
 
 from tokens import *
@@ -11,6 +13,14 @@ as_string = p(compose, lambda iter_: u''.join(iter_))
 whitespace_char = p(one_of, " ")
 whitespace = as_string(p(many, whitespace_char))
 whitespace1 = as_string(p(many1, whitespace_char))
+
+textLen = None
+
+def pos():
+    p = _pos()
+    if p is EndOfFile:
+        return textLen
+    return p.col-1
 
 def operator_char(operator_chars):
     return one_of(operator_chars)
@@ -76,11 +86,11 @@ def parenthetical():
     return Paren(n, start, end)
 
 def term():
-    return choice(parenthetical, number)
+    return choice(parenthetical, number, identifier)
 
 @tri
 def expr():
-    return choice(binaryOp, term)
+    return choice(binaryOp, functioncall, term)
 
 @tri
 def reserved(name):
@@ -102,6 +112,7 @@ def identifier():
     name = u''.join([first] + rest)
     return Identifier(name, start, end)
 
+@tri
 def functioncall():
     start = pos()
     name = identifier()
@@ -111,18 +122,21 @@ def functioncall():
     end = pos()
     return Call(name, arguments, start, end)
 
+@tri
+def assignement():
+    start = pos()
+    name = identifier()
+    special('=')
+    value = expr()
+    end = pos()
+    return Assignement(name, value, start, end)
+
 def part():
-    expr = functioncall()
-    many1(p(special,'\n'))
+    expr = choice(functioncall, assignement)
+    eof()
     return expr
 
-def program():
-    start = pos()
-    prog = many(part)
-    whitespace()
-    end = pos()
-    eof()
-    return Program(prog, start, end)
-
-def parse(text):
-    return run_text_parser(program, text)[0]
+def parse_instruction(text):
+    global textLen
+    textLen = len(text)
+    return run_text_parser(part, text)[0]

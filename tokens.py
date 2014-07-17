@@ -5,21 +5,12 @@ operators = ['-','+','*','/']
 class Token:
     precedence = 1000
     def __init__(self, start, end):
-        self._start = start
-        self._end   = end
+        self.start = start
+        self.end   = end
 
     @property
     def klass(self):
         return self.__class__.__name__
-
-
-    @property
-    def start(self):
-        return "%d.%d"%(self._start.row, self._start.col-1)
-
-    @property
-    def end(self):
-        return "%d.%d"%(self._end.row, self._end.col-1)
 
 class Program(Token):
     def __init__(self, parts, start, end):
@@ -41,7 +32,7 @@ class BinaryOp(Call):
         }
     def __init__(self, name, args, start, end):
         Call.__init__(self, name, args, start, end)
-        print("binop %s %s %s %s"%(self.name, self.args, self._start, self._end))
+        print("binop %s %s %s %s"%(self.name, self.args, self.start, self.end))
 
     @property
     def precedence(self):
@@ -57,27 +48,34 @@ class BinaryOp(Call):
         else:
             return self
 
-    def execute(self):
-        args = [n.execute() for n in self.args]
+    def execute(self, namespace):
+        args = [n.execute(namespace) for n in self.args]
         return BinaryOp.binary_ops[self.name.v](*args)
 
     def __str__(self):
-        return "%s %s %s %s"%(self.name, self.args, self._start, self._end)
+        return "%s %s %s %s"%(self.name, self.args, self.start, self.end)
+
+class Assignement(Token):
+    def __init__(self, name, value, start, end):
+        Token.__init__(self, start, end)
+        self.name = name
+        self.value = value
 
 class Value(Token):
     def __init__(self, value, start, end):
         Token.__init__(self, start, end)
         self.v  = value
 
-    def execute(self):
+    def execute(self, namespace):
         return self.v
 
 class Paren(Value):
-    def execute(self):
-        return self.v.execute()
+    def execute(self, namespace):
+        return self.v.execute(namespace)
 
 class Identifier(Value):
-    pass
+    def execute(self, namespace):
+        return namespace[self.v]
 
 class Int(Value):
     pass
