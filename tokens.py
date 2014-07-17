@@ -12,16 +12,14 @@ class Token:
     def klass(self):
         return self.__class__.__name__
 
-class Program(Token):
-    def __init__(self, parts, start, end):
-        Token.__init__(self, start, end)
-        self.parts = parts
-
 class Call(Token):
     def __init__(self, name, args, start, end):
         Token.__init__(self, start, end)
         self.name = name
         self.args = args
+
+    def depend(self, state):
+        return set(self.args)|set.union(*(arg.depend(state) for arg in self.args))
 
 class BinaryOp(Call):
     binary_ops = {
@@ -32,7 +30,6 @@ class BinaryOp(Call):
         }
     def __init__(self, name, args, start, end):
         Call.__init__(self, name, args, start, end)
-        print("binop %s %s %s %s"%(self.name, self.args, self.start, self.end))
 
     @property
     def precedence(self):
@@ -61,6 +58,9 @@ class Assignement(Token):
         self.name = name
         self.value = value
 
+    def depend(self, state):
+        return set([self.value])|self.value.depend(state)
+
 class Value(Token):
     def __init__(self, value, start, end):
         Token.__init__(self, start, end)
@@ -69,13 +69,22 @@ class Value(Token):
     def execute(self, namespace):
         return self.v
 
+    def depend(self, state):
+        return set()
+
 class Paren(Value):
     def execute(self, namespace):
         return self.v.execute(namespace)
 
+    def depend(self, state):
+        return set([self.v])|self.v.depend(state)
+
 class Identifier(Value):
     def execute(self, namespace):
-        return namespace[self.v]
+        return namespace[self.v][2]
+
+    def depend(self, state):
+        return state.namespace[self.v][1]
 
 class Int(Value):
     pass

@@ -47,10 +47,16 @@ class LineTagger:
         local_context = self.context[:]
         def on_enter(event):
             context.helpv.set(local_context[-1].help)
-            #[actor.show_helper(index) for actor in actors[self.lineno]]
+            shapes = states[-1].shapes
+            for state, depend, shape in shapes:
+                if state.lineno == self.lineno:
+                    shape.show_helper(index, context.canvas)
         def on_leave(event):
             context.helpv.set("")
-            #[actor.hide_helper() for actor in actors[self.lineno]]
+            shapes = states[-1].shapes
+            for state, depend, shape in shapes:
+                if state.lineno == self.lineno:
+                    shape.hide_helper(context.canvas)
         tag_name = "%s_%d_arg_%d"%(function_name, self.lineno, index)
         start_index = "%d.%d"%(self.lineno, node.start)
         end_index = "%d.%d"%(self.lineno, node.end)
@@ -111,7 +117,30 @@ class NodeChanger:
         print("replace", start_index, end_index, val, self.tag_name)
         context.text.replace(start_index, end_index, val, self.tag_name)
         self.node.end = self.node.start + len("%s"%val)
-        [actor.update() for actor in actors[self.lineno]]
+
+        state = states[-1]
+        #work on all variables that depend on the node
+        objects = []
+        for map_ in state.namespace.maps:
+            for n, v in map_.items():
+                if self.node in v[1]:
+                    objects.append(v)
+
+        for map_ in state.hiddenState.maps:
+            for n, v in map_.items():
+                if self.node in v[1]:
+                    objects.append(v)
+
+        for s in state.shapes:
+            if self.node in s[1]:
+                objects.append(s)
+
+        objects = sorted(objects, key=lambda v:v[1])
+
+        for obj in objects:
+            actor = next(p for l,p,n in prog if l==obj[0].lineno)
+            actor.update(obj[0], obj[2])
+        draw_state(states[-1])
         return "break"
         
 class Context:
@@ -119,19 +148,32 @@ class Context:
 
 
 target = None
-canvas = None
-tree = None
 context = Context()
+states = []
+prog = []
+everythingGenerated = set()
+
+class Namespace(ChainMap):
+    def __init__(self):
+        ChainMap.__init__(self)
+
+    def resolve(self, node):
+        sub_executor = getattr(self, "resolve_%s"%node.klass)
+        return sub_executor(node)
+
+    def resolve_Int(self, node):
+        return 
 
 class State:
-    def __init__(self):
+    def __init__(self, lineno):
+        self.lineno = lineno
         self.shapes = []
         self.hiddenState = ChainMap({})
         self.namespace = ChainMap({})
         self.child = None
 
-    def new_child(self):
-        child = State()
+    def new_child(self, lineno):
+        child = State(lineno)
         child.shapes = self.shapes[:]
         child.hiddenState = self.hiddenState.new_child()
         child.namespace = self.namespace.new_child()
@@ -142,16 +184,17 @@ def on_keyRelease(*args):
     update_from_text()
 
 def update_from_text():
+    global states
+    global prog
+    print("updating")
     prog = []
     content = context.text.get("1.0", "end")
     lines = content.split('\n')
+    [context.text.tag_remove(n, "1.0", "end") for n in context.text.tag_names()]
     for lineno, line in enumerate(lines):
         if not line or line.isspace():
             continue
-        print("|%s|"%line)
         node = grammar.parse_instruction(line)
-        LineTagger(functions, context.text, lineno+1).tag(node)
-        print(node)
         actor = None
         if node.klass == "Call":
             function = functions[node.name.v]
@@ -159,26 +202,36 @@ def update_from_text():
         if node.klass == "Assignement":
             actor = func_module._setter(context, node.name.v, node.value)
         if node:
-            prog.append((lineno, actor))
+            prog.append((lineno+1, actor, node))
 
     pc = 0
-    state = State()
+    state = State(0)
     states = [state]
-    state.hiddenState.update({'fillColor': "#000000", 'x_canvas_range':[0, 100], 'y_canvas_range':[0, 100]})
+    state.hiddenState.update({'fillColor'       : (state, set(), "#000000"),
+                              'x_canvas_range'  : (state, set(), [0, 100]),
+                              'y_canvas_range'  : (state, set(), [0, 100])
+                             })
     while pc < len(prog):
-        lineno, actor = prog[pc]
-        state = state.new_child()
+        lineno, actor, node = prog[pc]
+        state = state.new_child(lineno)
         actor.act(state)
         states.append(state)
         pc += 1
 
+    #if everything ok (run and parsing) add tag controller
+    for lineno, actor, node in prog:
+        LineTagger(functions, context.text, lineno).tag(node)
+
+    draw_state(state)
+
+
+def draw_state(state):
     context.canvas.delete('all')
-    for shape in state.shapes:
+    for _, _, shape in state.shapes:
         shape.draw(context.canvas)
         
 def on_motion(event):
     if target is None:
-        print("target is none")
         return "break"
     return target(event)
 

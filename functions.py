@@ -2,7 +2,7 @@ import shapes as _shapes
 
 def _update_coord(x, y, context, state):
     cwidth, cheight = context.canvas.winfo_width(), context.canvas.winfo_height()
-    return x/state.hiddenState['x_canvas_range'][1]*cwidth, y/state.hiddenState['y_canvas_range'][1]*cheight
+    return x/state.hiddenState['x_canvas_range'][2][1]*cwidth, y/state.hiddenState['y_canvas_range'][2][1]*cheight
 
 class _IntArgument:
     def __init__(self, help, range=(None, None), step=1):
@@ -32,8 +32,8 @@ class rectangle:
 
     def get_bounding_rect(self, state):
         x0, y0 = self.x.execute(state.namespace), self.y.execute(state.namespace)
-        x0 -= state.hiddenState['x_canvas_range'][0]
-        y0 -= state.hiddenState['y_canvas_range'][0]
+        x0 -= state.hiddenState['x_canvas_range'][2][0]
+        y0 -= state.hiddenState['y_canvas_range'][2][0]
         x1 = x0+self.w.execute(state.namespace)
         y1 = y0+self.h.execute(state.namespace)
         x0, y0 = _update_coord(x0, y0, self.context, state)
@@ -42,7 +42,13 @@ class rectangle:
 
     def act(self, state):
         x0, y0, x1, y1 = self.get_bounding_rect(state)
-        state.shapes.append(_shapes.Rectangle(x0, y0, x1, y1, state.hiddenState['fillColor']))
+        depend = set([self.x, self.y, self.w, self.h])
+        depend |= set.union(self.x.depend(state),self.y.depend(state),self.w.depend(state),self.h.depend(state), state.hiddenState['x_canvas_range'][1], state.hiddenState['y_canvas_range'][1], state.hiddenState['fillColor'][1])
+        state.shapes.append((state, depend, _shapes.Rectangle(x0, y0, x1, y1, state.hiddenState['fillColor'][2])))
+
+    def update(self, state, shape):
+        shape.x0, shape.y0, shape.x1, shape.y1 = self.get_bounding_rect(state)
+        shape.fillColor = state.hiddenState['fillColor'][2]
 
 class ellipse(rectangle):
     help = "Draw a ellipse"
@@ -54,7 +60,9 @@ class ellipse(rectangle):
 
     def act(self, state):
         x0, y0, x1, y1 = self.get_bounding_rect(state)
-        state.shapes.append(_shapes.Ellipse(x0, y0, x1, y1, state.hiddenState['fillColor']))
+        depend = set([self.x, self.y, self.w, self.h])
+        depend |= set.union(self.x.depend(state),self.y.depend(state),self.w.depend(state),self.h.depend(state), state.hiddenState['x_canvas_range'][1], state.hiddenState['y_canvas_range'][1], state.hiddenState['fillColor'][1])
+        state.shapes.append((state, depend, _shapes.Ellipse(x0, y0, x1, y1, state.hiddenState['fillColor'][2])))
 
 class fill:
     help = "Change the color of the fill parameter"
@@ -68,7 +76,13 @@ class fill:
         self.r, self.v, self.b = r, v, b
 
     def act(self, state):
-        state.hiddenState['fillColor'] = "#%02x%02x%02x"%(self.r.execute(state.namespace),self.v.execute(state.namespace),self.b.execute(state.namespace))
+        depend = set([self.r, self.v, self.b])
+        depend |= set.union(self.r.depend(state), self.v.depend(state), self.b.depend(state))
+        value = "#%02x%02x%02x"%(self.r.execute(state.namespace),self.v.execute(state.namespace),self.b.execute(state.namespace))
+        state.hiddenState['fillColor'] = (state, depend, value)
+
+    def update(self,state, v):
+        return self.act(state)
 
 
 class view:
@@ -84,10 +98,18 @@ class view:
         self.left, self.top, self.width, self.height = left, top, width, height
 
     def act(self, state):
-        state.hiddenState['x_canvas_range'][0] = self.left.execute(state.namespace)
-        state.hiddenState['y_canvas_range'][0] = self.top.execute(state.namespace)
-        state.hiddenState['x_canvas_range'][1] = self.width.execute(state.namespace)
-        state.hiddenState['y_canvas_range'][1] = self.height.execute(state.namespace)
+        left = self.left.execute(state.namespace)
+        top  = self.top.execute(state.namespace)
+        width = self.width.execute(state.namespace)
+        height = self.height.execute(state.namespace)
+        depend = set([self.left, self.top, self.width, self.height])
+        depend |= set.union(self.left.depend(state), self.top.depend(state), self.width.depend(state), self.height.depend(state))
+
+        state.hiddenState['x_canvas_range'] = (state, depend, [left, width])
+        state.hiddenState['y_canvas_range'] = (state, depend, [top, height])
+
+    def update(self,state, v):
+        return self.act(state)
 
 
 class _setter:
@@ -97,4 +119,8 @@ class _setter:
         self.value = value
 
     def act(self, state):
-        state.namespace[self.name] = self.value.execute(state.namespace)
+        depend = set([self.value])|self.value.depend(state)
+        state.namespace[self.name] = (state, depend, self.value.execute(state.namespace))
+
+    def update(self,state, v):
+        return self.act(state)      
