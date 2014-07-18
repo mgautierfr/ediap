@@ -7,7 +7,7 @@ from picoparse import pos as _pos
 from tokens import *
 
 reserved_words = []
-binary_operator_chars = "+-/*"
+binary_operator_chars = ['+', '-', '/', '*', '==', '<', '>', '!=', '<=', '>=']
 
 as_string = p(compose, lambda iter_: u''.join(iter_))
 whitespace_char = p(one_of, " ")

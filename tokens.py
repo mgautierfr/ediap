@@ -1,5 +1,5 @@
 
-operators = ['-','+','*','/']
+operators = ['<', '<=', '>', '>=', '!=', '==', '-','+','*','/']
 
 
 class Token:
@@ -27,6 +27,12 @@ class BinaryOp(Call):
         '-' : lambda x, y : x-y,
         '/' : lambda x, y : x/y,
         '*' : lambda x, y : x*y,
+        '==': lambda x, y : x==y,
+        '<' : lambda x, y : x<y,
+        '>' : lambda x, y : x>y,
+        '!=' : lambda x, y : x!=y,
+        '<=' : lambda x, y : x<=y,
+        '>=' : lambda x, y : x>=y
         }
     def __init__(self, name, args, start, end):
         Call.__init__(self, name, args, start, end)
