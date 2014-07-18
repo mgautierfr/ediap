@@ -12,6 +12,37 @@ class Token:
     def klass(self):
         return self.__class__.__name__
 
+class Value(Token):
+    def __init__(self, value, start, end):
+        Token.__init__(self, start, end)
+        self.v  = value
+
+    def execute(self, namespace):
+        return self.v
+
+    def depend(self, state):
+        return set()
+
+class Paren(Value):
+    def execute(self, namespace):
+        return self.v.execute(namespace)
+
+    def depend(self, state):
+        return set([self.v])|self.v.depend(state)
+
+class Identifier(Value):
+    def execute(self, namespace):
+        return namespace[self.v][2]
+
+    def depend(self, state):
+        return state.namespace[self.v][1]
+
+class Int(Value):
+    pass
+
+class Float(Value):
+    pass
+
 class Call(Token):
     def __init__(self, name, args, start, end):
         Token.__init__(self, start, end)
@@ -67,34 +98,10 @@ class Assignement(Token):
     def depend(self, state):
         return set([self.value])|self.value.depend(state)
 
-class Value(Token):
-    def __init__(self, value, start, end):
+class If(Token):
+    def __init__(self, test, start, end):
         Token.__init__(self, start, end)
-        self.v  = value
-
-    def execute(self, namespace):
-        return self.v
+        self.test = test
 
     def depend(self, state):
-        return set()
-
-class Paren(Value):
-    def execute(self, namespace):
-        return self.v.execute(namespace)
-
-    def depend(self, state):
-        return set([self.v])|self.v.depend(state)
-
-class Identifier(Value):
-    def execute(self, namespace):
-        return namespace[self.v][2]
-
-    def depend(self, state):
-        return state.namespace[self.v][1]
-
-class Int(Value):
-    pass
-
-class Float(Value):
-    pass
-
+        return set([self.test])|self.test.depend(state)

@@ -123,4 +123,15 @@ class _setter:
         state.namespace[self.name] = (state, depend, self.value.execute(state.namespace))
 
     def update(self,state, v):
-        return self.act(state)      
+        return self.act(state)
+
+class _if:
+    def __init__(self, context, test):
+        self.context = context
+        self.test = test
+
+    def act(self, state):
+        return self.test.execute(state.namespace)
+
+    def update(self,state, v):
+        return self.act(state)

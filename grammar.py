@@ -131,12 +131,24 @@ def assignement():
     end = pos()
     return Assignement(name, value, start, end)
 
+@tri
+def ifstmt():
+    start = pos()
+    special('if')
+    test = expr()
+    end = pos()
+    return If(test, start, end)
+
 def part():
-    expr = choice(functioncall, assignement)
+    expr = choice(functioncall, assignement, ifstmt)
     eof()
     return expr
 
 def parse_instruction(text):
     global textLen
     textLen = len(text)
-    return run_text_parser(part, text)[0]
+    stripped = text.lstrip()
+    level = len(text)-len(stripped)
+    statement = run_text_parser(part, text)[0]
+    statement.level = level
+    return statement

@@ -184,7 +184,6 @@ def on_keyRelease(*args):
     update_from_text()
 
 def update_from_text():
-    global states
     global prog
     print("updating")
     prog = []
@@ -201,10 +200,24 @@ def update_from_text():
             actor = function(context, *node.args)
         if node.klass == "Assignement":
             actor = func_module._setter(context, node.name.v, node.value)
+        if node.klass == "If":
+            actor = func_module._if(context, node.test)
         if node:
             prog.append((lineno+1, actor, node))
 
+    state = run_prog()
+
+    #if everything ok (run and parsing) add tag controller
+    for lineno, actor, node in prog:
+        LineTagger(functions, context.text, lineno).tag(node)
+
+    draw_state(state)
+
+
+def run_prog():
+    global states
     pc = 0
+    levels = [0]
     state = State(0)
     states = [state]
     state.hiddenState.update({'fillColor'       : (state, set(), "#000000"),
@@ -213,17 +226,24 @@ def update_from_text():
                              })
     while pc < len(prog):
         lineno, actor, node = prog[pc]
-        state = state.new_child(lineno)
-        actor.act(state)
-        states.append(state)
         pc += 1
-
-    #if everything ok (run and parsing) add tag controller
-    for lineno, actor, node in prog:
-        LineTagger(functions, context.text, lineno).tag(node)
-
-    draw_state(state)
-
+        if node.klass == "If":
+            result = actor.act(state)
+            if not result:
+                try:
+                    while prog[pc][2].level > levels[-1]:
+                        pc += 1
+                except IndexError:
+                    return state
+                continue
+            else:
+                levels.append(prog[pc][2].level)
+        else:
+            levels = levels[:levels.index(node.level)+1]
+            state = state.new_child(lineno)
+            actor.act(state)
+            states.append(state)
+    return state
 
 def draw_state(state):
     context.canvas.delete('all')
@@ -254,7 +274,8 @@ def main():
 view(0, 0, 100, 100)
 fill(0, 0, 255)
 ellipse(10, 10+10, 10, 10)
-fill(255, 0, 0)
+if x < 5
+    fill(255, 0, 0)
 ellipse(50, x*10, 50, 30)
 """)
     context.helpv = tkinter.StringVar()
