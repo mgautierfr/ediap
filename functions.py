@@ -78,7 +78,10 @@ class fill:
     def act(self, state):
         depend = set([self.r, self.v, self.b])
         depend |= set.union(self.r.depend(state), self.v.depend(state), self.b.depend(state))
-        value = "#%02x%02x%02x"%(self.r.execute(state.namespace),self.v.execute(state.namespace),self.b.execute(state.namespace))
+        r = min(max(self.r.execute(state.namespace), 0), 255)
+        v = min(max(self.v.execute(state.namespace), 0), 255)
+        b = min(max(self.b.execute(state.namespace), 0), 255)
+        value = "#%02x%02x%02x"%(r,v,b)
         state.hiddenState['fillColor'] = (state, depend, value)
 
     def update(self,state, v):
