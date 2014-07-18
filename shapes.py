@@ -8,7 +8,6 @@ class Shape:
         pass
 
     def hide_helper(self, canvas):
-        print("hide helper")
         if self.helper is not None:
             canvas.delete(self.helper[1])
         self.helper = None
@@ -30,7 +29,6 @@ class Rectangle(Shape):
             self.show_helper(self.helper[0], canvas)
 
     def show_helper(self, index, canvas):
-        print("show helper")
         if index == 0:
             coords = self.get_x_helper_coords()
         if index == 1:

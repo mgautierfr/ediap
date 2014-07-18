@@ -114,7 +114,6 @@ class NodeChanger:
         self.node.v = val
         start_index = "%d.%d"%(self.lineno, self.node.start)
         end_index = "%d.%d"%(self.lineno, self.node.end)
-        print("replace", start_index, end_index, val, self.tag_name)
         context.text.replace(start_index, end_index, val, self.tag_name)
         self.node.end = self.node.start + len("%s"%val)
 
@@ -185,7 +184,6 @@ def on_keyRelease(*args):
 
 def update_from_text():
     global prog
-    print("updating")
     prog = []
     content = context.text.get("1.0", "end")
     lines = content.split('\n')
