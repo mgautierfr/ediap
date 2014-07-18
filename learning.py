@@ -214,9 +214,37 @@ def update_from_text():
     draw_state(state)
 
 
-def run_prog():
+class InvalidIndent(Exception):
+    pass
+
+def pass_level(level, pc):
+    while prog[pc][2].level >= level:
+        pc += 1
+    return pc
+
+def run_level(level, pc, state):
+    while pc < len(prog):
+        lineno, actor, node = prog[pc]
+        if node.level < level:
+            break
+        if node.level > level:
+            raise InvalidIndent(pc, node.level, level)
+        pc += 1
+        if node.klass == "If":
+            result = actor.act(state)
+            if result:
+                pc, state = run_level(prog[pc][2].level, pc, state)
+            else:
+                pc = pass_level(prog[pc][2].level, pc)
+        else:
+            state = state.new_child(lineno)
+            actor.act(state)
+            states.append(state)
+
+    return pc, state
+
+def run_prog(pc = 0):
     global states
-    pc = 0
     levels = [0]
     state = State(0)
     states = [state]
@@ -224,25 +252,7 @@ def run_prog():
                               'x_canvas_range'  : (state, set(), [0, 100]),
                               'y_canvas_range'  : (state, set(), [0, 100])
                              })
-    while pc < len(prog):
-        lineno, actor, node = prog[pc]
-        pc += 1
-        if node.klass == "If":
-            result = actor.act(state)
-            if not result:
-                try:
-                    while prog[pc][2].level > levels[-1]:
-                        pc += 1
-                except IndexError:
-                    return state
-                continue
-            else:
-                levels.append(prog[pc][2].level)
-        else:
-            levels = levels[:levels.index(node.level)+1]
-            state = state.new_child(lineno)
-            actor.act(state)
-            states.append(state)
+    pc, state = run_level(0, 0, state)
     return state
 
 def draw_state(state):
