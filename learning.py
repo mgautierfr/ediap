@@ -4,8 +4,8 @@
 import tkinter
 import functions as func_module
 from pprint import pprint
-import grammar
-from collections import ChainMap
+import grammar, interpreter
+
 
 def int_scale(value, neg):
     return value + (1-2*neg)
@@ -47,13 +47,13 @@ class LineTagger:
         local_context = self.context[:]
         def on_enter(event):
             context.helpv.set(local_context[-1].help)
-            shapes = states[-1].shapes
+            shapes = interpretor.state.shapes
             for state, depend, shape in shapes:
                 if state.lineno == self.lineno:
                     shape.show_helper(index, context.canvas)
         def on_leave(event):
             context.helpv.set("")
-            shapes = states[-1].shapes
+            shapes = interpretor.state.shapes
             for state, depend, shape in shapes:
                 if state.lineno == self.lineno:
                     shape.hide_helper(context.canvas)
@@ -122,7 +122,7 @@ class NodeChanger:
         context.text.replace(start_index, end_index, val, self.tag_name)
         self.node.end = self.node.start + len("%s"%val)
 
-        state = states[-1]
+        state = interpretor.state
         #work on all variables that depend on the node
         objects = []
         for map_ in state.namespace.maps:
@@ -144,7 +144,7 @@ class NodeChanger:
         for obj in objects:
             actor = next(p for l,p,n in prog if l==obj[0].lineno)
             actor.update(obj[0], obj[2])
-        draw_state(states[-1])
+        draw_state(interpretor.state)
         return "break"
         
 class Context:
@@ -153,42 +153,16 @@ class Context:
 
 target = None
 context = Context()
-states = []
 prog = []
+interpretor = None
 everythingGenerated = set()
-
-class Namespace(ChainMap):
-    def __init__(self):
-        ChainMap.__init__(self)
-
-    def resolve(self, node):
-        sub_executor = getattr(self, "resolve_%s"%node.klass)
-        return sub_executor(node)
-
-    def resolve_Int(self, node):
-        return 
-
-class State:
-    def __init__(self, lineno):
-        self.lineno = lineno
-        self.shapes = []
-        self.hiddenState = ChainMap({})
-        self.namespace = ChainMap({})
-        self.child = None
-
-    def new_child(self, lineno):
-        child = State(lineno)
-        child.shapes = self.shapes[:]
-        child.hiddenState = self.hiddenState.new_child()
-        child.namespace = self.namespace.new_child()
-        self.child = child
-        return child
 
 def on_keyRelease(*args):
     update_from_text()
 
 def update_from_text():
     global prog
+    global interpretor
     prog = []
     content = context.text.get("1.0", "end")
     lines = content.split('\n')
@@ -210,60 +184,14 @@ def update_from_text():
         if node:
             prog.append((lineno+1, actor, node))
 
-    state = run_prog()
+    interpretor = interpreter.Interpreter(prog)
+    state = interpretor.run_prog()
 
     #if everything ok (run and parsing) add tag controller
     for lineno, actor, node in prog:
         LineTagger(functions, context.text, lineno).tag(node)
 
     draw_state(state)
-
-
-class InvalidIndent(Exception):
-    pass
-
-def pass_level(level, pc):
-    while pc < len(prog) and prog[pc][2].level >= level:
-        pc += 1
-    return pc
-
-def run_level(level, pc, state):
-    while pc < len(prog):
-        lineno, actor, node = prog[pc]
-        if node.level < level:
-            break
-        if node.level > level:
-            raise InvalidIndent(pc, node.level, level)
-        pc += 1
-        if node.klass == "If":
-            result = actor.act(state)
-            if result:
-                pc, state = run_level(prog[pc][2].level, pc, state)
-            else:
-                pc = pass_level(prog[pc][2].level, pc)
-        elif node.klass == "While":
-            while actor.act(state):
-                _, state = run_level(prog[pc][2].level, pc, state)
-            else:
-                pc = pass_level(prog[pc][2].level, pc)
-        else:
-            state = state.new_child(lineno)
-            actor.act(state)
-            states.append(state)
-
-    return pc, state
-
-def run_prog(pc = 0):
-    global states
-    levels = [0]
-    state = State(0)
-    states = [state]
-    state.hiddenState.update({'fillColor'       : (state, set(), "#000000"),
-                              'x_canvas_range'  : (state, set(), [0, 100]),
-                              'y_canvas_range'  : (state, set(), [0, 100])
-                             })
-    pc, state = run_level(0, 0, state)
-    return state
 
 def draw_state(state):
     context.canvas.delete('all')
@@ -290,8 +218,8 @@ def main():
     text.bind("<KeyRelease>", on_keyRelease)
     text.bind("<Button1-Motion>", on_motion)
     text.bind("<Button1-ButtonRelease>", on_release)
-    text.insert("1.0", """x = 5
-view(0, 0, 100, 100)
+    text.insert("1.0", """x = 11
+view(0, 0, 160, 160)
 fill(0, 0, 255)
 ellipse(10, 10+10, 10, 10)
 if x < 5
