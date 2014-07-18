@@ -42,10 +42,10 @@ class Rectangle(Shape):
         self.helper = (index, canvas.create_line(*coords, fill="red"))
 
     def get_x_helper_coords(self):
-        return 0, self.y0, self.x1, self.y0
+        return 0, self.y0, self.x0, self.y0
 
     def get_y_helper_coords(self):
-        return self.x0, 0, self.x0, self.y1
+        return self.x0, 0, self.x0, self.y0
 
     def get_h_helper_coords(self):
         middle_x = (self.x0+self.x1)/2
