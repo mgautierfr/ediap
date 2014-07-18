@@ -95,6 +95,11 @@ class LineTagger:
         self.textWidget.tag_bind(tag_name, "<Leave>", on_leave, add="+")
         self.textWidget.tag_configure(tag_name, foreground="blue")
 
+    def tag_If(self, node):
+        self.tag(node.test)
+
+    tag_While = tag_If
+
 
 class NodeChanger:
     def __init__(self, lineno, node, tag_name, mouse_coord, modifier):
