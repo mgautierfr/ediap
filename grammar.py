@@ -139,8 +139,16 @@ def ifstmt():
     end = pos()
     return If(test, start, end)
 
+@tri
+def whilestmt():
+    start = pos()
+    special('while')
+    test = expr()
+    end = pos()
+    return While(test, start, end)
+
 def part():
-    expr = choice(functioncall, assignement, ifstmt)
+    expr = choice(functioncall, assignement, ifstmt, whilestmt)
     eof()
     return expr
 

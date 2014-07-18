@@ -202,6 +202,8 @@ def update_from_text():
             actor = func_module._setter(context, node.name.v, node.value)
         if node.klass == "If":
             actor = func_module._if(context, node.test)
+        if node.klass == "While":
+            actor = func_module._while(context, node.test)
         if node:
             prog.append((lineno+1, actor, node))
 
@@ -218,7 +220,7 @@ class InvalidIndent(Exception):
     pass
 
 def pass_level(level, pc):
-    while prog[pc][2].level >= level:
+    while pc < len(prog) and prog[pc][2].level >= level:
         pc += 1
     return pc
 
@@ -234,6 +236,11 @@ def run_level(level, pc, state):
             result = actor.act(state)
             if result:
                 pc, state = run_level(prog[pc][2].level, pc, state)
+            else:
+                pc = pass_level(prog[pc][2].level, pc)
+        elif node.klass == "While":
+            while actor.act(state):
+                _, state = run_level(prog[pc][2].level, pc, state)
             else:
                 pc = pass_level(prog[pc][2].level, pc)
         else:
@@ -286,8 +293,15 @@ fill(0, 0, 255)
 ellipse(10, 10+10, 10, 10)
 if x < 5
     fill(255, 0, 0)
-ellipse(50, x*10, 50, 30)
-""")
+ellipse(50, x*9, 50, 30)
+x = 0
+while x < 10
+  y = 0
+  while y < 10
+    fill(25*x, 25*y, 0)
+    rectangle(15*x, 15*y, 10, 10)
+    y = y + 1
+  x = x + 1""")
     context.helpv = tkinter.StringVar()
     label = tkinter.Label(root, textvariable=context.helpv)
     label.pack()

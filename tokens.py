@@ -105,3 +105,6 @@ class If(Token):
 
     def depend(self, state):
         return set([self.test])|self.test.depend(state)
+
+class While(If):
+    pass

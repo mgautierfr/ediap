@@ -135,3 +135,6 @@ class _if:
 
     def update(self,state, v):
         return self.act(state)
+
+class _while(_if):
+    pass
