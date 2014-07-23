@@ -154,6 +154,7 @@ class Context:
 target = None
 context = Context()
 prog = []
+source = []
 interpretor = None
 everythingGenerated = set()
 
@@ -162,14 +163,15 @@ def on_keyRelease(*args):
 
 def update_from_text():
     global prog
+    global source
     global interpretor
     if not context.text.edit_modified():
         return
     prog = []
     content = context.text.get("1.0", "end")
-    lines = content.split('\n')
+    source = enumerate(content.split('\n'))
     [context.text.tag_remove(n, "1.0", "end") for n in context.text.tag_names()]
-    for lineno, line in enumerate(lines):
+    for lineno, line in source:
         if not line or line.isspace():
             continue
         node = grammar.parse_instruction(line)
