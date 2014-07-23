@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 
-import tkinter
+import tkinter, tkinter.font
 import functions
 from pprint import pprint
 import grammar, interpreter
@@ -95,10 +95,17 @@ class LineTagger:
         self.textWidget.tag_bind(tag_name, "<Leave>", on_leave, add="+")
         self.textWidget.tag_configure(tag_name, foreground="blue")
 
-    def tag_If(self, node):
-        self.tag(node.test)
+    def tag_If(self, instruction):
+        start_index = "%d.%d"%(self.lineno, instruction.level)
+        end_index = "%s + 2c"%(start_index)
+        self.textWidget.tag_add("keyword", start_index, end_index)
+        self.tag(instruction.test)
 
-    tag_While = tag_If
+    def tag_While(self, instruction):
+        start_index = "%d.%d"%(self.lineno, instruction.level)
+        end_index = "%s + 5c"%(start_index)
+        self.textWidget.tag_add("keyword", start_index, end_index)
+        self.tag(instruction.test)
 
 
 class NodeChanger:
@@ -207,6 +214,9 @@ while x < 10
     rectangle(500+50*x, 500+50*y, 30, 30)
     y = y + 1
   x = x + 1""")
+    font = tkinter.font.Font(font=text['font'])
+    font.configure(weight='bold')
+    text.tag_configure("keyword", foreground="darkgreen", font=font)
     context.helpv = tkinter.StringVar()
     label = tkinter.Label(root, textvariable=context.helpv)
     label.pack()
