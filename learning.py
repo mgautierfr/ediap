@@ -169,7 +169,7 @@ def update_from_text():
         return
     prog = []
     content = context.text.get("1.0", "end")
-    source = enumerate(content.split('\n'))
+    source = enumerate(content.split('\n'), 1)
     [context.text.tag_remove(n, "1.0", "end") for n in context.text.tag_names()]
     for lineno, line in source:
         if not line or line.isspace():
@@ -186,7 +186,7 @@ def update_from_text():
         if node.klass == "While":
             actor = func_module._while(context, node.test)
         if node:
-            prog.append((lineno+1, actor, node))
+            prog.append((lineno, actor, node))
 
     interpretor = interpreter.Interpreter(prog)
     state = interpretor.run_prog()
