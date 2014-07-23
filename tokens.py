@@ -21,9 +21,6 @@ class Value(Token):
     def get_node(self, namespace):
         return self._node
 
-    def depend(self, state):
-        return set()
-
 class Int(Value):
     pass
 
@@ -34,15 +31,9 @@ class Paren(Value):
     def get_node(self, namespace):
         return self.v.get_node(namespace)
 
-    def depend(self, state):
-        return set([self.v])|self.v.depend(state)
-
 class Identifier(Value):
     def get_node(self, namespace):
         return namespace[self.v]
-
-    def depend(self, state):
-        return state.namespace[self.v][1]
 
 class BinaryOp(Token):
     def __init__(self, name, x, y, start, end):
