@@ -2,7 +2,7 @@
 
 
 import tkinter
-import functions as func_module
+import functions
 from pprint import pprint
 import grammar, interpreter
 
@@ -11,8 +11,7 @@ def int_scale(value, neg):
     return value + (1-2*neg)
 
 class LineTagger:
-    def __init__(self, functions, textWidget, lineno):
-        self.functions = functions
+    def __init__(self, textWidget, lineno):
         self.textWidget = textWidget
         self.lineno = lineno
         self.directChild = False
@@ -30,7 +29,7 @@ class LineTagger:
         function_name = node.name.v
         self.tag_functionIdentifier(node.name)
         for index, argument in enumerate(node.args):
-            self.context.append(self.functions[function_name].arguments[index])
+            self.context.append(getattr(functions, function_name).arguments[index])
             self.tag_argument(function_name, index, argument)
             self.context.pop()
         
@@ -41,21 +40,21 @@ class LineTagger:
         end_index = "%d.%d"%(self.lineno, node.end)
         self.textWidget.tag_add(tag_name, start_index, end_index)
         self.textWidget.tag_configure(tag_name, foreground="red")
-        self.textWidget.tag_bind(tag_name, "<Enter>", lambda e: context.helpv.set(self.functions[node.v].help))
+        self.textWidget.tag_bind(tag_name, "<Enter>", lambda e: context.helpv.set(getattr(functions,node.v).help))
 
     def tag_argument(self, function_name, index, node):
         local_context = self.context[:]
         def on_enter(event):
             context.helpv.set(local_context[-1].help)
             shapes = interpretor.state.shapes
-            for state, depend, shape in shapes:
-                if state.lineno == self.lineno:
+            for shape in shapes:
+                if shape.lineno == self.lineno:
                     shape.show_helper(index, context.canvas)
         def on_leave(event):
             context.helpv.set("")
             shapes = interpretor.state.shapes
-            for state, depend, shape in shapes:
-                if state.lineno == self.lineno:
+            for shape in shapes:
+                if shape.lineno == self.lineno:
                     shape.hide_helper(context.canvas)
         tag_name = "%s_%d_arg_%d"%(function_name, self.lineno, index)
         start_index = "%d.%d"%(self.lineno, node.start)
@@ -73,7 +72,8 @@ class LineTagger:
 
     def tag_BinaryOp(self, node):
         self.directChild = False
-        [self.tag(n) for n in node.args]
+        self.tag(node.x)
+        self.tag(node.y)
 
     def tag_Int(self, node):
         def on_enter(event):
@@ -102,9 +102,9 @@ class LineTagger:
 
 
 class NodeChanger:
-    def __init__(self, lineno, node, tag_name, mouse_coord, modifier):
+    def __init__(self, lineno, token, tag_name, mouse_coord, modifier):
         self.lineno = lineno
-        self.node = node
+        self.token = token
         self.tag_name = tag_name
         self.x = mouse_coord
         self.modifier = modifier
@@ -115,35 +115,14 @@ class NodeChanger:
         if not dx:
             return "break"
 
-        val = self.modifier(self.node.v, dx<0)
-        self.node.v = val
-        start_index = "%d.%d"%(self.lineno, self.node.start)
-        end_index = "%d.%d"%(self.lineno, self.node.end)
+        val = self.modifier(self.token.v, dx<0)
+        self.token.v = val
+        self.token._node.v = val
+        start_index = "%d.%d"%(self.lineno, self.token.start)
+        end_index = "%d.%d"%(self.lineno, self.token.end)
         context.text.replace(start_index, end_index, val, self.tag_name)
-        self.node.end = self.node.start + len("%s"%val)
+        self.token.end = self.token.start + len("%s"%val)
 
-        state = interpretor.state
-        #work on all variables that depend on the node
-        objects = []
-        for map_ in state.namespace.maps:
-            for n, v in map_.items():
-                if self.node in v[1]:
-                    objects.append(v)
-
-        for map_ in state.hiddenState.maps:
-            for n, v in map_.items():
-                if self.node in v[1]:
-                    objects.append(v)
-
-        for s in state.shapes:
-            if self.node in s[1]:
-                objects.append(s)
-
-        objects = sorted(objects, key=lambda v:v[1])
-
-        for obj in objects:
-            actor = next(p for l,p,n in prog if l==obj[0].lineno)
-            actor.update(obj[0], obj[2])
         draw_state(interpretor.state)
         return "break"
         
@@ -169,31 +148,18 @@ def update_from_text():
         return
     prog = []
     content = context.text.get("1.0", "end")
-    source = enumerate(content.split('\n'), 1)
+    source = list(enumerate(content.split('\n'), 1))
     [context.text.tag_remove(n, "1.0", "end") for n in context.text.tag_names()]
     for lineno, line in source:
         if not line or line.isspace():
             continue
-        node = grammar.parse_instruction(line)
-        actor = None
-        if node.klass == "Call":
-            function = functions[node.name.v]
-            actor = function(context, *node.args)
-        if node.klass == "Assignement":
-            actor = func_module._setter(context, node.name.v, node.value)
-        if node.klass == "If":
-            actor = func_module._if(context, node.test)
-        if node.klass == "While":
-            actor = func_module._while(context, node.test)
-        if node:
-            prog.append((lineno, actor, node))
+        instruction = grammar.parse_instruction(line)
+        actor = instruction(context)
+        LineTagger(context.text, lineno).tag(instruction)
+        prog.append((lineno, actor))
 
-    interpretor = interpreter.Interpreter(prog)
+    interpretor = interpreter.Interpreter(prog, source)
     state = interpretor.run_prog()
-
-    #if everything ok (run and parsing) add tag controller
-    for lineno, actor, node in prog:
-        LineTagger(functions, context.text, lineno).tag(node)
 
     draw_state(state)
 
@@ -201,7 +167,7 @@ def update_from_text():
 
 def draw_state(state):
     context.canvas.delete('all')
-    for _, _, shape in state.shapes:
+    for shape in state.shapes:
         shape.draw(context.canvas)
         
 def on_motion(event):
@@ -215,7 +181,6 @@ def on_release(event):
     update_from_text()
 
 def main():
-    global functions
     root = tkinter.Tk()
     context.canvas = canvas = tkinter.Canvas(root, bg="white")
     canvas.pack(side="right", fill="y")
@@ -225,24 +190,26 @@ def main():
     text.bind("<Button1-Motion>", on_motion)
     text.bind("<Button1-ButtonRelease>", on_release)
     text.insert("1.0", """x = 11
-view(0, 0, 160, 160)
+view(0, 0, 1000, 1000)
 fill(0, 0, 255)
-ellipse(10, 10+10, 10, 10)
-if x < 5
-    fill(255, 0, 0)
-ellipse(50, x*9, 50, 30)
+ellipse(10, 10, 100, 100)
+rectangle(200, 200+x*9, 150, 50)
+fill(255, 255, 0)
 x = 0
+while x < 3
+  rectangle(500+110*x, 100+10*x, 100, 100)
+  x = x + 1
+x=0
 while x < 10
   y = 0
   while y < 10
     fill(25*x, 25*y, 0)
-    rectangle(15*x, 15*y, 10, 10)
+    rectangle(500+50*x, 500+50*y, 30, 30)
     y = y + 1
   x = x + 1""")
     context.helpv = tkinter.StringVar()
     label = tkinter.Label(root, textvariable=context.helpv)
     label.pack()
-    functions = { k:v for k,v in func_module.__dict__.items() if not k.startswith("_") }
     root.after(100, on_keyRelease)
     root.mainloop()
 

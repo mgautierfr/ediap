@@ -1,5 +1,6 @@
 
 from collections import ChainMap
+import nodes
 
 class InvalidIndent(Exception):
     pass
@@ -9,21 +10,24 @@ class State:
     def __init__(self, lineno):
         self.lineno = lineno
         self.shapes = []
-        self.hiddenState = ChainMap({})
-        self.namespace = ChainMap({})
-        self.child = None
+        self.hiddenState = {}
+        self.namespace = {}
 
     def new_child(self, lineno):
         child = State(lineno)
         child.shapes = self.shapes[:]
-        child.hiddenState = self.hiddenState.new_child()
-        child.namespace = self.namespace.new_child()
+        child.hiddenState = dict(self.hiddenState)
+        child.namespace = dict(self.namespace)
         self.child = child
         return child
 
+    def __str__(self):
+        return "<State \n%s\n%s\n%s\n>"%(self.shapes, self.hiddenState, self.namespace)
+
 class Interpreter:
-    def __init__(self, prog):
+    def __init__(self, prog, source):
         self.prog = prog
+        self.source = source
         self.states = []
 
     def new_state(self, lineno):
@@ -36,41 +40,45 @@ class Interpreter:
         return self.states[-1]
 
     def pass_level(self, level, pc):
-        while pc < len(self.prog) and self.prog[pc][2].level >= level:
+        while pc < len(self.prog) and self.prog[pc][1].level >= level:
             pc += 1
         return pc
 
     def run_level(self, level, pc):
         while pc < len(self.prog):
-            lineno, actor, node = self.prog[pc]
-            if node.level < level:
+            lineno, actor = self.prog[pc]
+            if actor.level < level:
                 break
-            if node.level > level:
-                raise InvalidIndent(pc, node.level, level)
+            if actor.level > level:
+                raise InvalidIndent(pc, actor.level, level)
             pc += 1
-            if node.klass == "If":
-                result = actor.act(self.state)
+            if actor.klass == "_if":
+                result = actor(self.state)
                 if result:
-                    pc = self.run_level(self.prog[pc][2].level, pc)
+                    pc = self.run_level(self.prog[pc][1].level, pc)
                 else:
-                    pc = self.pass_level(self.prog[pc][2].level, pc)
-            elif node.klass == "While":
-                while actor.act(self.state):
-                    self.run_level(self.prog[pc][2].level, pc)
+                    pc = self.pass_level(self.prog[pc][1].level, pc)
+            elif actor.klass == "_while":
+                while actor(self.state):
+                    self.run_level(self.prog[pc][1].level, pc)
                 else:
-                    pc = self.pass_level(self.prog[pc][2].level, pc)
+                    pc = self.pass_level(self.prog[pc][1].level, pc)
             else:
+                #print(self.source[lineno-1])
                 state = self.new_state(lineno)
-                actor.act(state)
+                actor(state)
+                #print(state)
     
         return pc
     
     def run_prog(self):
         state = State(0)
         self.states = [state]
-        state.hiddenState.update({'fillColor'       : (state, set(), "#000000"),
-                                  'x_canvas_range'  : (state, set(), [0, 100]),
-                                  'y_canvas_range'  : (state, set(), [0, 100])
+        state.hiddenState.update({'fillColor'       : nodes.Value("#000000"),
+                                  'view_left'       : nodes.Value(0),
+                                  'view_width'      : nodes.Value(100),
+                                  'view_top'        : nodes.Value(0),
+                                  'view_height'     : nodes.Value(100)
                                  })
         self.run_level(0, 0)
         return self.state

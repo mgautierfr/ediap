@@ -5,6 +5,7 @@ from picoparse import pos as _pos
 
 
 from tokens import *
+import instructions
 
 reserved_words = []
 binary_operator_chars = ['+', '-', '/', '*', '==', '<', '>', '!=', '<=', '>=']
@@ -75,7 +76,7 @@ def binaryOp():
     name = operator(p(operator_char, binary_operator_chars))
     arg2 = expr()
     end = pos()
-    return BinaryOp(name, [arg1, arg2], start, end).merge()
+    return BinaryOp(name, arg1, arg2, start, end).merge()
 
 def parenthetical():
     start = pos()
@@ -114,38 +115,30 @@ def identifier():
 
 @tri
 def functioncall():
-    start = pos()
     name = identifier()
     special('(')
     arguments = sep(expr, p(special, ','))
     special(')')
-    end = pos()
-    return Call(name, arguments, start, end)
+    return instructions.Call(name, arguments)
 
 @tri
 def assignement():
-    start = pos()
     name = identifier()
     special('=')
     value = expr()
-    end = pos()
-    return Assignement(name, value, start, end)
+    return instructions.Assignement(name, value)
 
 @tri
 def ifstmt():
-    start = pos()
     special('if')
     test = expr()
-    end = pos()
-    return If(test, start, end)
+    return instructions.If(test)
 
 @tri
 def whilestmt():
-    start = pos()
     special('while')
     test = expr()
-    end = pos()
-    return While(test, start, end)
+    return instructions.While(test)
 
 def part():
     expr = choice(functioncall, assignement, ifstmt, whilestmt)
