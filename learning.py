@@ -163,6 +163,8 @@ def on_keyRelease(*args):
 def update_from_text():
     global prog
     global interpretor
+    if not context.text.edit_modified():
+        return
     prog = []
     content = context.text.get("1.0", "end")
     lines = content.split('\n')
@@ -192,6 +194,8 @@ def update_from_text():
         LineTagger(functions, context.text, lineno).tag(node)
 
     draw_state(state)
+
+    context.text.edit_modified(False)
 
 def draw_state(state):
     context.canvas.delete('all')
@@ -243,3 +247,4 @@ while x < 10
 
 if __name__ == '__main__':
     main()
+
