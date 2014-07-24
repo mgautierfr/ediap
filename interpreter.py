@@ -27,17 +27,16 @@ class State:
         return "<State %d\n%s\n%s\n%s\n>"%(self.lineno,self.shapes, self.hiddenState, self.namespace)
 
 class Interpreter:
-    def __init__(self, textInput, textTagger):
+    def __init__(self, textInput, textTagger, canvas, stepOutput):
         self.textInput = textInput
         self.textTagger = textTagger
+        self.canvas = canvas
+        self.stepOutput = stepOutput
         self.textInput.bind("<<Modified>>", self.on_modified, add="+")
         self.steps = []
         self.state = None
+        self.activeState = None
         self.watchdog = 10000
-        self.followers = []
-
-    def add_follower(self, follower):
-        self.followers.append(follower)
 
     def on_modified(self, *args):
         if not self.textInput.edit_modified():
@@ -50,10 +49,14 @@ class Interpreter:
             self.parse_text()
             if self.valid:
                 self.run_prog()
-        
+
         if self.valid:
-            for follower in self.followers:
-                follower.update()
+            self.canvas.update(self.activeState)
+            self.stepOutput.update(self)
+
+    def set_activeState(self, state):
+        self.activeState = state
+        self.canvas.update(state)
 
     def new_state(self, lineno):
         if not self.state:
@@ -130,4 +133,5 @@ class Interpreter:
         self.state = None
         self.steps = []
         self.run_level(0, 0)
+        self.activeState = self.state
         return self.state

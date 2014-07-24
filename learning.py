@@ -25,11 +25,7 @@ def main():
     
     textTagger = TextTagger(text, canvas)
 
-    interpretor = interpreter.Interpreter(text, textTagger)
-    canvas.interpretor = interpretor
-    interpretor.add_follower(canvas)
-    stepOutput.interpretor = interpretor
-    interpretor.add_follower(stepOutput)
+    interpretor = interpreter.Interpreter(text, textTagger, canvas, stepOutput)
 
 
     text.insert("1.0", """x = 11
