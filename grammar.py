@@ -145,11 +145,13 @@ def part():
     eof()
     return expr
 
+def get_level(text):
+    stripped = text.lstrip()
+    return len(text)-len(stripped)
+
 def parse_instruction(text):
     global textLen
     textLen = len(text)
-    stripped = text.lstrip()
-    level = len(text)-len(stripped)
     statement = run_text_parser(part, text)[0]
-    statement.level = level
+    statement.level = get_level(text)
     return statement

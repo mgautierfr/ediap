@@ -5,6 +5,7 @@ import tkinter, tkinter.font
 import functions
 from pprint import pprint
 import grammar, interpreter
+from picoparse import NoMatch
 
 
 def int_scale(value, neg):
@@ -172,18 +173,27 @@ def update_from_text():
     content = context.text.get("1.0", "end")
     source = list(enumerate(content.split('\n'), 1))
     [context.text.tag_remove(n, "1.0", "end") for n in context.text.tag_names()]
+    valid = True
     for lineno, line in source:
         if not line or line.isspace():
             continue
-        instruction = grammar.parse_instruction(line)
-        actor = instruction(context)
-        LineTagger(context.text, lineno).tag(instruction)
-        prog.append((lineno, actor))
+        try:
+            instruction = grammar.parse_instruction(line)
+            LineTagger(context.text, lineno).tag(instruction)
+        except NoMatch:
+            level = grammar.get_level(line)
+            context.text.tag_add("invalidSyntax", "%d.%d"%(lineno, level), "%d.0 lineend"%lineno)
+            valid = False
+            continue
+        if valid:
+            actor = instruction(context)
+            prog.append((lineno, actor))
 
-    interpretor = interpreter.Interpreter(prog, source)
-    state = interpretor.run_prog()
+    if valid:
+        interpretor = interpreter.Interpreter(prog, source)
+        state = interpretor.run_prog()
 
-    draw_state(state)
+        draw_state(state)
 
     context.text.edit_modified(False)
 
@@ -232,6 +242,7 @@ while x < 10
     font = tkinter.font.Font(font=text['font'])
     font.configure(weight='bold')
     text.tag_configure("keyword", foreground="darkgreen", font=font)
+    text.tag_configure("invalidSyntax", background="#FFBBBB")
     context.helpv = tkinter.StringVar()
     label = tkinter.Label(root, textvariable=context.helpv)
     label.pack()
