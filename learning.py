@@ -26,7 +26,7 @@ def main():
     textTagger = TextTagger(text, canvas)
 
     interpretor = interpreter.Interpreter(text, textTagger, canvas, stepOutput)
-
+    stepOutput.interpretor = interpretor
 
     text.insert("1.0", """x = 11
 view(0, 0, 1000, 1000)
@@ -34,14 +34,16 @@ fill(0, 0, 255)
 ellipse(10, 10, 100, 100)
 rectangle(200, 200+x*9, 150, 50)
 fill(255, 255, 0)
+if x == 11
+  fill(0, 0, 255)
 x = 0
 while x < 3
   rectangle(500+110*x, 100+10*x, 100, 100)
   x = x + 1
 x=0
-while x < 1
+while x < 5
   y = 0
-  while y < 1
+  while y < 5
     fill(25*x, 25*y, 0)
     rectangle(500+50*x, 500+50*y, 30, 30)
     y = y + 1
