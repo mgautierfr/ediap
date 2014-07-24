@@ -108,6 +108,8 @@ class LineTagger:
         self.textWidget.tag_bind(tag_name, "<Leave>", on_leave, add="+")
         self.textWidget.tag_configure(tag_name, foreground="blue")
 
+    tag_Float = tag_Int
+
     def tag_If(self, instruction):
         start_index = "%d.%d"%(self.lineno, instruction.level)
         end_index = "%s + 2c"%(start_index)
