@@ -14,7 +14,7 @@ class TextInput(tkinter.Text):
         self.helpv = helpv
 
     def place(self):
-        self.pack(side="top", fill="both", expand=1)
+        self.pack(side="left", fill="y", expand=0)
 
     def on_motion(self, event):
         if self.target is None:
@@ -30,3 +30,4 @@ class TextInput(tkinter.Text):
 
     def clean_tags(self):
         [self.tag_remove(n, "1.0", "end") for n in self.tag_names()]
+

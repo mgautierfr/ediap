@@ -11,11 +11,8 @@ class CanvasOutput(tkinter.Canvas):
         self.pack(side="right")
         
 
-    def update(self, state=None):
-        if state is None:
-            state = self.saveState
-        if state is None:
-            return
+    def update(self,):
+        state = self.interpretor.state
         self.saveState = state
         self.delete('all')
         for shape in state.shapes:

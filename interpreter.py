@@ -25,7 +25,7 @@ class State:
         return child
 
     def __str__(self):
-        return "<State \n%s\n%s\n%s\n>"%(self.shapes, self.hiddenState, self.namespace)
+        return "<State %d\n%s\n%s\n%s\n>"%(self.lineno,self.shapes, self.hiddenState, self.namespace)
 
 class Interpreter:
     def __init__(self, textInput, textTagger):
@@ -53,11 +53,21 @@ class Interpreter:
         
         if self.valid:
             for follower in self.followers:
-                follower.update(self.state)
+                follower.update()
 
     def new_state(self, lineno):
-        state = self.states[-1].new_child(lineno)
-        self.states.append(state)
+        if not self.states:
+            state = State(lineno)
+            state.hiddenState.update({'fillColor'       : nodes.Value("#000000"),
+                                      'view_left'       : nodes.Value(0),
+                                      'view_width'      : nodes.Value(100),
+                                      'view_top'        : nodes.Value(0),
+                                      'view_height'     : nodes.Value(100)
+                                 })
+            self.states = [state]
+        else:
+            state = self.states[-1].new_child(lineno)
+            self.states.append(state)
         return state
 
     def parse_text(self):
@@ -120,13 +130,6 @@ class Interpreter:
         return pc
     
     def run_prog(self):
-        state = State(0)
-        self.states = [state]
-        state.hiddenState.update({'fillColor'       : nodes.Value("#000000"),
-                                  'view_left'       : nodes.Value(0),
-                                  'view_width'      : nodes.Value(100),
-                                  'view_top'        : nodes.Value(0),
-                                  'view_height'     : nodes.Value(100)
-                                 })
+        self.states = []
         self.run_level(0, 0)
         return self.state
