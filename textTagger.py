@@ -128,6 +128,7 @@ class NodeChanger:
         val = self.modifier(self.token.v, dx<0)
         self.token.v = val
         self.token._node.v = val
+        self.token._node.clean_cache()
         start_index = "%d.%d"%(self.lineno, self.token.start)
         end_index = "%d.%d"%(self.lineno, self.token.end)
         self.textTagger.text.replace(start_index, end_index, val, self.tag_name)

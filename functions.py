@@ -1,14 +1,18 @@
 import shapes as _shapes
 import nodes as _nodes
 
-class _ColorNode:
+class _ColorNode(_nodes.Node):
     def __init__(self, r, v, b):
+        _nodes.Node.__init__(self)
         self.r, self.v, self.b = r, v, b
+        r.add_ref(self)
+        v.add_ref(self)
+        b.add_ref(self)
 
     def depend(self):
         return self.r.depend()|self.v.depend()|self.b.depend()
 
-    def __call__(self):
+    def get_value(self):
         r = min(max(self.r(), 0), 255)
         v = min(max(self.v(), 0), 255)
         b = min(max(self.b(), 0), 255)
