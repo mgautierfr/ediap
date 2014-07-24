@@ -1,5 +1,6 @@
 
-from collections import ChainMap
+import grammar
+from picoparse import NoMatch
 import nodes
 
 class InvalidIndent(Exception):
@@ -27,16 +28,57 @@ class State:
         return "<State \n%s\n%s\n%s\n>"%(self.shapes, self.hiddenState, self.namespace)
 
 class Interpreter:
-    def __init__(self, prog, source):
-        self.prog = prog
-        self.source = source
+    def __init__(self, textInput, textTagger):
+        self.textInput = textInput
+        self.textTagger = textTagger
+        self.textInput.bind("<<Modified>>", self.on_modified, add="+")
         self.states = []
         self.watchdog = 10000
+        self.followers = []
+
+    def add_follower(self, follower):
+        self.followers.append(follower)
+
+    def on_modified(self, *args):
+        if not self.textInput.edit_modified():
+            return
+        self.textInput.edit_modified(False)
+
+        if not self.textTagger.changing:
+            #This is not a direct change from textTagger.
+            # => Need to parse all text again
+            self.parse_text()
+            if self.valid:
+                self.run_prog()
+        
+        if self.valid:
+            for follower in self.followers:
+                follower.update(self.state)
 
     def new_state(self, lineno):
         state = self.states[-1].new_child(lineno)
         self.states.append(state)
         return state
+
+    def parse_text(self):
+        self.prog = []
+        self.source = self.textInput.get_source()
+        self.textInput.clean_tags()
+        self.valid = True
+        for lineno, line in self.source:
+            if not line or line.isspace():
+                continue
+            try:
+                instruction = grammar.parse_instruction(line)
+                self.textTagger.tag_line(lineno, instruction)
+            except NoMatch:
+                level = grammar.get_level(line)
+                self.textInput.tag_add("invalidSyntax", "%d.%d"%(lineno, level), "%d.0 lineend"%lineno)
+                self.valid = False
+                continue
+            if self.valid:
+                actor = instruction()
+                self.prog.append((lineno, actor))
 
     @property
     def state(self):

@@ -1,18 +1,6 @@
 import shapes as _shapes
 import nodes as _nodes
 
-class _RatioNode:
-    def __init__(self, arg, user_range, canvas_size):
-        self.arg = arg
-        self.user_range = user_range
-        self.canvas_size = canvas_size
-
-    def __call__(self):
-        return self.arg()/self.user_range()*self.canvas_size()
-
-    def depend(self):
-        return self.arg.depend()|self.user_range.depend()
-
 class _ColorNode:
     def __init__(self, r, v, b):
         self.r, self.v, self.b = r, v, b
@@ -41,8 +29,7 @@ class _IntArgument:
         return value
 
 class _Actor:
-    def __init__(self, context, level):
-        self.context = context
+    def __init__(self, level):
         self.level = level
 
     @property
@@ -57,8 +44,8 @@ class rectangle(_Actor):
                  _IntArgument("height of the rectangle")
                 ]
     
-    def __init__(self, context, level, x, y, w, h):
-        _Actor.__init__(self, context, level)
+    def __init__(self, level, x, y, w, h):
+        _Actor.__init__(self, level)
         self.x, self.y, self.w, self.h = x, y, w, h
 
     def get_bounding_rect(self, state):
@@ -69,10 +56,10 @@ class rectangle(_Actor):
         x1 = _nodes.Operator('+', x0, self.w.get_node(state.namespace))
         y1 = _nodes.Operator('+', y0, self.h.get_node(state.namespace))
 
-        x0 = _RatioNode(x0, state.hiddenState['view_width'], lambda : self.context.canvas.winfo_width())
-        x1 = _RatioNode(x1, state.hiddenState['view_width'], lambda : self.context.canvas.winfo_width())
-        y0 = _RatioNode(y0, state.hiddenState['view_height'], lambda : self.context.canvas.winfo_height())
-        y1 = _RatioNode(y1, state.hiddenState['view_height'], lambda : self.context.canvas.winfo_height())
+        x0 = _nodes.Operator('/', x0, state.hiddenState['view_width'])
+        x1 = _nodes.Operator('/', x1, state.hiddenState['view_width'])
+        y0 = _nodes.Operator('/', y0, state.hiddenState['view_height'])
+        y1 = _nodes.Operator('/', y1, state.hiddenState['view_height'])
         return x0, y0, x1, y1
 
     def __call__(self, state):
@@ -102,8 +89,8 @@ class fill(_Actor):
                  _IntArgument("blue", (0, 255), 10)
                 ]
 
-    def __init__(self, context, level, r, v, b):
-        _Actor.__init__(self, context, level)
+    def __init__(self, level, r, v, b):
+        _Actor.__init__(self, level)
         self.r, self.v, self.b = r, v, b
 
     def __call__(self, state):
@@ -122,8 +109,8 @@ class view(_Actor):
                  _IntArgument("bottom of the view")
                 ]
 
-    def __init__(self, context, level, left, top, width, height):
-        _Actor.__init__(self, context, level)
+    def __init__(self, level, left, top, width, height):
+        _Actor.__init__(self, level)
         self.left, self.top, self.width, self.height = left, top, width, height
 
     def __call__(self, state):
@@ -137,8 +124,8 @@ class view(_Actor):
 
 
 class _setter(_Actor):
-    def __init__(self, context, level, name, value):
-        _Actor.__init__(self, context, level)
+    def __init__(self, level, name, value):
+        _Actor.__init__(self, level)
         self.name = name
         self.value = value
 
@@ -153,8 +140,8 @@ class _setter(_Actor):
         return self.act(state)
 
 class _if(_Actor):
-    def __init__(self, context, level, test):
-        _Actor.__init__(self, context, level)
+    def __init__(self, level, test):
+        _Actor.__init__(self, level)
         self.test = test
 
     def __call__(self, state):
