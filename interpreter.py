@@ -21,7 +21,6 @@ class State:
         child.shapes = self.shapes[:]
         child.hiddenState = dict(self.hiddenState)
         child.namespace = dict(self.namespace)
-        self.child = child
         return child
 
     def __str__(self):
@@ -32,7 +31,8 @@ class Interpreter:
         self.textInput = textInput
         self.textTagger = textTagger
         self.textInput.bind("<<Modified>>", self.on_modified, add="+")
-        self.states = []
+        self.steps = []
+        self.state = None
         self.watchdog = 10000
         self.followers = []
 
@@ -56,19 +56,17 @@ class Interpreter:
                 follower.update()
 
     def new_state(self, lineno):
-        if not self.states:
-            state = State(lineno)
-            state.hiddenState.update({'fillColor'       : nodes.Value("#000000"),
+        if not self.state:
+            self.state = State(lineno)
+            self.state.hiddenState.update({'fillColor'       : nodes.Value("#000000"),
                                       'view_left'       : nodes.Value(0),
                                       'view_width'      : nodes.Value(100),
                                       'view_top'        : nodes.Value(0),
                                       'view_height'     : nodes.Value(100)
                                  })
-            self.states = [state]
         else:
-            state = self.states[-1].new_child(lineno)
-            self.states.append(state)
-        return state
+            self.state = self.state.new_child(lineno)
+        return self.state
 
     def parse_text(self):
         self.prog = []
@@ -90,10 +88,6 @@ class Interpreter:
                 actor = instruction()
                 self.prog.append((lineno, actor))
 
-    @property
-    def state(self):
-        return self.states[-1]
-
     def pass_level(self, level, pc):
         while pc < len(self.prog) and self.prog[pc][1].level >= level:
             pc += 1
@@ -110,26 +104,30 @@ class Interpreter:
             if actor.level > level:
                 raise InvalidIndent(pc, actor.level, level)
             pc += 1
-            if actor.klass == "_if":
+            if actor.klass in ("_if", "_while"):
                 result = actor(self.state)
-                if result:
-                    pc = self.run_level(self.prog[pc][1].level, pc)
-                else:
-                    pc = self.pass_level(self.prog[pc][1].level, pc)
-            elif actor.klass == "_while":
-                while actor(self.state):
-                    self.run_level(self.prog[pc][1].level, pc)
+                self.steps.append((lineno, self.state))
+                while result:
+                    pc_ = self.run_level(self.prog[pc][1].level, pc)
+                    if actor.klass == "_if":
+                        pc = pc_
+                        break
+                    result = actor(self.state)
+                    self.steps.append((lineno, self.state))
                 else:
                     pc = self.pass_level(self.prog[pc][1].level, pc)
             else:
                 #print(self.source[lineno-1])
                 state = self.new_state(lineno)
                 actor(state)
+                self.steps.append((lineno, self.state))
                 #print(state)
+            
     
         return pc
     
     def run_prog(self):
-        self.states = []
+        self.state = None
+        self.steps = []
         self.run_level(0, 0)
         return self.state

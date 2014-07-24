@@ -10,6 +10,7 @@ class TextInput(tkinter.Text):
         font.configure(weight='bold')
         self.tag_configure("keyword", foreground="darkgreen", font=font)
         self.tag_configure("invalidSyntax", background="#FFBBBB")
+        self.tag_configure("highlihgt", background="#FFFF99")
         self.target = None
         self.helpv = helpv
 

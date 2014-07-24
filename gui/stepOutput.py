@@ -34,17 +34,17 @@ class StepOutput(tkinter.Frame):
 
     def update(self):
         self.steps.delete('all')
-        for nb, state in enumerate(self.interpretor.states):
-            pos = self.text.bbox("%d.0"%(state.lineno))
+        for nb, lineno_state in enumerate(self.interpretor.steps):
+            lineno, state = lineno_state
+            pos = self.text.bbox("%d.0"%(lineno))
             if pos:
-                self.steps.create_oval(pos[3]*nb, pos[1], pos[3]*(nb+1), pos[1]+pos[3], fill="black")
-            print(state)
+                id_ = self.steps.create_oval(pos[3]*nb, pos[1], pos[3]*(nb+1), pos[1]+pos[3], fill="black")
+                self.steps.tag_bind(id_, "<Enter>", lambda e, l=lineno :self.text.tag_add("highlihgt", "%d.0"%l, "%d.0 +1l"%l))
+                self.steps.tag_bind(id_, "<Leave>", lambda e, l=lineno :self.text.tag_remove("highlihgt", "1.0", "end"))
         width = max(self.steps.bbox('all')[2], self.steps.winfo_width()-10)
         for lineno ,line in self.interpretor.source:
             pos = self.text.bbox("%d.0"%(lineno))
             if pos:
                 self.steps.create_line(0, pos[1]+pos[3], width, pos[1]+pos[3])
         self.steps['scrollregion'] = self.steps.bbox('all')
-            #pass
-            #print (nb, state.lineno)
 
