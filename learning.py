@@ -215,9 +215,9 @@ def on_release(event):
 def main():
     root = tkinter.Tk()
     context.canvas = canvas = tkinter.Canvas(root, bg="white")
-    canvas.pack(side="right", fill="y")
+    canvas.pack(side="right")
     context.text = text = tkinter.Text(root)
-    text.pack()
+    text.pack(side="top", fill="both", expand=1)
     text.bind("<KeyRelease>", on_keyRelease)
     text.bind("<Button1-Motion>", on_motion)
     text.bind("<Button1-ButtonRelease>", on_release)
@@ -245,7 +245,7 @@ while x < 10
     text.tag_configure("invalidSyntax", background="#FFBBBB")
     context.helpv = tkinter.StringVar()
     label = tkinter.Label(root, textvariable=context.helpv)
-    label.pack()
+    label.pack(side="bottom", anchor="s")
     root.after(100, on_keyRelease)
     root.mainloop()
 
