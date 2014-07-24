@@ -5,6 +5,8 @@ import nodes
 class InvalidIndent(Exception):
     pass
 
+class ToManyInstruction(Exception):
+    pass
 
 class State:
     def __init__(self, lineno):
@@ -29,6 +31,7 @@ class Interpreter:
         self.prog = prog
         self.source = source
         self.states = []
+        self.watchdog = 10000
 
     def new_state(self, lineno):
         state = self.states[-1].new_child(lineno)
@@ -47,6 +50,9 @@ class Interpreter:
     def run_level(self, level, pc):
         while pc < len(self.prog):
             lineno, actor = self.prog[pc]
+            self.watchdog -= 1
+            if not self.watchdog:
+                raise ToManyInstruction()
             if actor.level < level:
                 break
             if actor.level > level:
