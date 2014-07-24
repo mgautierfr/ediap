@@ -24,7 +24,9 @@ def pos():
     return p.col-1
 
 def operator_char(operator_chars):
-    return one_of(operator_chars)
+    ret = choice(*(p(string, op) for op in operator_chars))
+    ret = u''.join(ret)
+    return ret
 
 def identifier_char1():
     return satisfies(lambda l: l.isalpha() or l == "_")
@@ -61,11 +63,11 @@ def number():
     return type_(v, start, end)
 
 @tri
-def operator(operator_char):
+def operator(chars):
   whitespace()
   start = pos()
   #not_followed_by(p(choice, *[p(reserved_op, op) for op in reserved_operators]))
-  name = u''.join(many1(operator_char))
+  name = operator_char(chars)
   end = pos()
   return Identifier(name, start, end)
 
@@ -73,7 +75,7 @@ def operator(operator_char):
 def binaryOp():
     start = pos()
     arg1 = term()
-    name = operator(p(operator_char, binary_operator_chars))
+    name = operator(binary_operator_chars)
     arg2 = expr()
     end = pos()
     return BinaryOp(name, arg1, arg2, start, end).merge()
