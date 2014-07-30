@@ -18,6 +18,15 @@ class CanvasOutput(tkinter.Frame):
             self.after_cancel(self.idle_handle)
         self.idle_handle = self.after(0, self.update)
 
+    def on_token_changed(self):
+        state = self.program.steps[self.program.displayedStep].state
+        self.canvas.delete('helpers')
+        for shape in state.shapes:
+            shape.update(self.canvas)
+            if shape.lineno == self.program.helpers[0]:
+                shape.draw_helper(self.program.helpers[1], self.canvas)
+        self.fillColor['bg'] = state.hiddenState['fillColor']()
+
     def place(self):
         self.pack(side="right")
         

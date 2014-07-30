@@ -26,7 +26,15 @@ class Rectangle(Shape):
         y0 = self.y0()*canvas.winfo_height()
         x1 = self.x1()*canvas.winfo_width()
         y1 = self.y1()*canvas.winfo_height()
-        canvas.create_rectangle(x0, y0, x1, y1, fill=self.fillColor())
+        self.shapeid = canvas.create_rectangle(x0, y0, x1, y1, fill=self.fillColor())
+
+    def update(self, canvas):
+        x0 = self.x0()*canvas.winfo_width()
+        y0 = self.y0()*canvas.winfo_height()
+        x1 = self.x1()*canvas.winfo_width()
+        y1 = self.y1()*canvas.winfo_height()
+        canvas.coords(self.shapeid, x0, y0, x1, y1)
+        canvas.item_config(self.shapeid, fill=self.fillColor())
 
     def draw_helper(self, index, canvas):
         if index == 0:
@@ -37,7 +45,7 @@ class Rectangle(Shape):
             coords = self.get_w_helper_coords(canvas)
         if index == 3:
             coords = self.get_h_helper_coords(canvas)
-        canvas.create_line(*coords, fill="red")
+        canvas.create_line(*coords, fill="red", tags="helpers")
 
     def get_x_helper_coords(self, canvas):
         y0 = self.y0()*canvas.winfo_height()
@@ -70,3 +78,4 @@ class Ellipse(Rectangle):
     def get_y_helper_coords(self, canvas):
         middle_x = (self.x0()+self.x1())/2*canvas.winfo_width()
         return middle_x, 0, middle_x, self.y0()*canvas.winfo_height()
+
