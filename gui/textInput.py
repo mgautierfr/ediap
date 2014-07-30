@@ -29,7 +29,7 @@ class NodeChanger:
         end_index = "%d.%d"%(self.lineno, self.token.end)
         self.text.replace(start_index, end_index, val, self.tag_name)
         self.token.end = self.token.start + len("%s"%val)
-        self.text.changing = False
+        self.text.program.event("token_changed")()
 
         return "break"
 
@@ -164,15 +164,13 @@ class TextInput(tkinter.Text):
         for lineno, line in enumerate(lines):
             try:
                 if line != self.program.source[lineno].text:
-                    self.program.update_text(lineno, line, self.changing)
+                    self.program.update_text(lineno, line, do_event = not self.changing)
             except IndexError:
                 pass
         self.edit_modified(False)
             
 
-    def on_modified(self, directChange):
-        if directChange:
-            return
+    def on_modified(self):
         self.clean_tags()
         for line in self.program.source:
             if line.valid:
@@ -194,8 +192,10 @@ class TextInput(tkinter.Text):
         return self.target(event)
     
     def on_release(self, event):
-        self.target = None
-        self.program.event("source_modified")(False)
+        if self.changing:
+            self.target = None
+            self.changing = False
+            self.program.event("source_modified")()
 
     def clean_tags(self):
         [self.tag_remove(n, "1.0", "end") for n in self.tag_names()]

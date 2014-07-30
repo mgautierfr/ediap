@@ -75,9 +75,10 @@ class Program(utils.EventSource):
         for lineno, line in enumerate(lines, 1):
             self.source.append(Line(lineno, line))
 
-    def update_text(self, lineno, text, directChange):
+    def update_text(self, lineno, text, do_event):
         self.source[lineno].update_text(text)
-        self.event("source_modified")(directChange)
+        if do_event:
+            self.event("source_modified")()
 
     @property
     def displayedStep(self):

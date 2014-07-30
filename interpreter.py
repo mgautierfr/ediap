@@ -32,16 +32,11 @@ class Interpreter:
         self.state = None
         self.watchdog = 10000
 
-    def on_source_modified(self, directChange):
-        if not directChange:
-            #This is not a direct change from textTagger.
-            # => Need to parse all text again
-            self.parse_text()
-            if self.valid:
-                self.run_prog()
+    def on_source_modified(self):
 
+        self.parse_text()
         if self.valid:
-            self.program.event("steps_modified")()
+            self.run_prog()
 
     def new_state(self, lineno, state):
         if not state:

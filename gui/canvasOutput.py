@@ -9,16 +9,21 @@ class CanvasOutput(tkinter.Frame):
         self.fillColor = tkinter.Label(self, text="fillColor")
         self.fillColor.pack()
         self.program = program
-        self.program.connect("steps_modified", self.on_stepChanged)
+        self.program.connect("token_changed", self.on_stepChanged)
         self.program.connect("displayedStepChange", self.on_stepChanged)
+        self.idle_handle = None
 
     def on_stepChanged(self, *args):
-        self.update(self.program.steps[self.program.displayedStep].state)
+        if self.idle_handle is not None:
+            self.after_cancel(self.idle_handle)
+        self.idle_handle = self.after(0, self.update)
 
     def place(self):
         self.pack(side="right")
         
-    def update(self, state):
+    def update(self):
+        state = self.program.steps[self.program.displayedStep].state
+        self.idle_handle = None
         self.canvas.delete('all')
         for shape in state.shapes:
             shape.draw(self.canvas)
