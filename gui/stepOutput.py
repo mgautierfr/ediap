@@ -4,22 +4,14 @@ import tkinter
 def get_enter_callback(stepOutput, step):
     def callback(event):
         stepOutput.changing = True
-        stepOutput.activeStep.set(step)
+        stepOutput.program.displayedStep = step
         stepOutput.changing = False
     return callback
 
 class StepOutput(tkinter.Frame):
     def __init__(self, parent, text, program):
         tkinter.Frame.__init__(self, parent)
-        self.activeStep = tkinter.IntVar(self)
         self.oldStep = None
-        self.stepExplorer = tkinter.Scale(self, variable=self.activeStep,
-                                                orient=tkinter.HORIZONTAL)
-        self.stepExplorer.grid(column=0,
-                             row=2,
-                             sticky="nsew",
-                             columnspan=2
-                            )
         self.hScrollbar = tkinter.Scrollbar(self, orient=tkinter.HORIZONTAL)
         self.hScrollbar.grid(column=0,
                              row=1,
@@ -38,7 +30,6 @@ class StepOutput(tkinter.Frame):
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=0)
 
-        self.activeStep.trace("w", self.showStep)
         self.vScrollbar['command'] = self.steps.yview
         self.hScrollbar['command'] = self.steps.xview
         self.steps['yscrollcommand'] = self.vScrollbar.set
@@ -52,9 +43,6 @@ class StepOutput(tkinter.Frame):
 
     def place(self):
         self.pack(fill="both", expand=1, side="right")
-
-    def showStep(self, *args):
-        self.program.displayedStep = self.activeStep.get()
 
     def on_displayedStepChanged(self, step):
         if self.oldStep is not None:
@@ -79,5 +67,4 @@ class StepOutput(tkinter.Frame):
                 self.steps.create_line(0, pos[1]+pos[3], width, pos[1]+pos[3])
         self.steps['scrollregion'] = self.steps.bbox('all')
         self.steps['xscrollincrement'] = 1.0/nb
-        self.stepExplorer['to'] = nb
 

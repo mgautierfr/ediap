@@ -38,6 +38,8 @@ def main():
     program = Program()
 
     program.set_source(default_source.split('\n'))
+
+    stepChanger = gui.StepChanger(root, program)
     
     text = gui.TextInput(root, helpv, program)
     
@@ -47,7 +49,7 @@ def main():
 
     interpretor = interpreter.Interpreter(program)
 
-#    text.insert("1.0", default_source)
+    stepChanger.place()
 
     canvas.place()
     label = tkinter.Label(root, textvariable=helpv)
