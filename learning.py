@@ -6,29 +6,9 @@ import functions
 from pprint import pprint
 import interpreter
 import gui
-from textTagger import TextTagger
-        
+from program import Program, Line
 
-interpretor = None
-
-def main():
-    global interpretor
-    root = tkinter.Tk()
-    
-    helpv = tkinter.StringVar()
-    
-    text = gui.TextInput(root, helpv)
-    
-    canvas = gui.CanvasOutput(root)
-
-    stepOutput = gui.StepOutput(root, text)
-    
-    textTagger = TextTagger(text, canvas)
-
-    interpretor = interpreter.Interpreter(text, textTagger, canvas, stepOutput)
-    stepOutput.interpretor = interpretor
-
-    text.insert("1.0", """x = 11
+default_source = """x = 11
 view(0, 0, 1000, 1000)
 fill(0, 0, 255)
 ellipse(10, 10, 100, 100)
@@ -47,7 +27,27 @@ while x < 5
     fill(25*x, 25*y, 0)
     rectangle(500+50*x, 500+50*y, 30, 30)
     y = y + 1
-  x = x + 1""")
+  x = x + 1"""
+
+
+def main():
+    root = tkinter.Tk()
+    
+    helpv = tkinter.StringVar()
+
+    program = Program()
+
+    program.set_source(default_source.split('\n'))
+    
+    text = gui.TextInput(root, helpv, program)
+    
+    canvas = gui.CanvasOutput(root, program)
+
+    stepOutput = gui.StepOutput(root, text, program)
+
+    interpretor = interpreter.Interpreter(program)
+
+#    text.insert("1.0", default_source)
 
     canvas.place()
     label = tkinter.Label(root, textvariable=helpv)
@@ -55,10 +55,8 @@ while x < 5
 
     stepOutput.place()
     text.place()
-    
 
-    text.edit_modified(True)
-    root.after_idle(interpretor.on_modified)
+    root.after(500, lambda : program.event("source_modified")(False))
     root.mainloop()
 
 

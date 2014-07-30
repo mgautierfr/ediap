@@ -1,17 +1,15 @@
 
 import tkinter
 
-def get_enter_callback(stepOutput, lineno, state, step):
+def get_enter_callback(stepOutput, step):
     def callback(event):
-        stepOutput.text.tag_add("highlihgt", "%d.0"%lineno, "%d.0 +1l"%lineno)
-        stepOutput.interpretor.set_activeState(state)
-        stepOutput.steps.itemconfig("step_%d"%stepOutput.oldStep , fill="black")      
+        stepOutput.changing = True
         stepOutput.activeStep.set(step)
-        stepOutput.steps.itemconfig("step_%d"%step, fill="red")
+        stepOutput.changing = False
     return callback
 
 class StepOutput(tkinter.Frame):
-    def __init__(self, parent, text):
+    def __init__(self, parent, text, program):
         tkinter.Frame.__init__(self, parent)
         self.activeStep = tkinter.IntVar(self)
         self.oldStep = None
@@ -47,32 +45,36 @@ class StepOutput(tkinter.Frame):
         self.steps['xscrollcommand'] = self.hScrollbar.set
         self.helpers = (None, None)
         self.text = text
+        self.program = program
+        self.program.connect("steps_modified", self.update)
+        self.program.connect("displayedStepChange", self.on_displayedStepChanged)
+        self.changing = False
 
     def place(self):
         self.pack(fill="both", expand=1, side="right")
 
     def showStep(self, *args):
-        if self.oldStep:
-            self.steps.itemconfig("step_%d"%self.oldStep, fill="black")
-        self.oldStep = self.activeStep.get()
-        self.steps.xview_moveto(max(0, self.oldStep-5)/self.nbSteps)
-        self.steps.itemconfig("step_%d"%self.oldStep , fill="red")
-        _, state = self.interpretor.steps[int(self.oldStep)]
-        self.interpretor.set_activeState(state)
+        self.program.displayedStep = self.activeStep.get()
 
-    def update(self, interpretor):
+    def on_displayedStepChanged(self, step):
+        if self.oldStep is not None:
+            self.steps.itemconfig("step_%d"%self.oldStep, fill="black")
+        self.oldStep = self.program.displayedStep
+        if not self.changing:
+            self.steps.xview_moveto(max(0, self.oldStep-5)/self.nbSteps)
+        self.steps.itemconfig("step_%d"%self.oldStep , fill="red")
+
+    def update(self, *args):
         self.steps.delete('all')
-        for nb, lineno_state in enumerate(interpretor.steps):
-            lineno, state = lineno_state
-            pos = self.text.bbox("%d.0"%(lineno))
+        for nb, step in enumerate(self.program.steps):
+            pos = self.text.bbox("%d.0"%(step.lineno))
             if pos:
                 id_ = self.steps.create_oval(pos[3]*nb, pos[1], pos[3]*(nb+1), pos[1]+pos[3], fill="black", tags=["step_%d"%nb])
-                self.steps.tag_bind(id_, "<Enter>", get_enter_callback(self, lineno, state, nb))
-                self.steps.tag_bind(id_, "<Leave>", lambda e, l=lineno :self.text.tag_remove("highlihgt", "1.0", "end"))
+                self.steps.tag_bind(id_, "<Enter>", get_enter_callback(self, nb))
         self.nbSteps = nb
         width = max(self.steps.bbox('all')[2], self.steps.winfo_width()-10)
-        for lineno ,line in interpretor.source:
-            pos = self.text.bbox("%d.0"%(lineno))
+        for line in self.program.source:
+            pos = self.text.bbox("%d.0"%(line.lineno))
             if pos:
                 self.steps.create_line(0, pos[1]+pos[3], width, pos[1]+pos[3])
         self.steps['scrollregion'] = self.steps.bbox('all')

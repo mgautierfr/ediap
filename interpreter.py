@@ -1,6 +1,5 @@
 
-import grammar
-from picoparse import NoMatch
+from program import Instruction, Step
 import nodes
 
 class InvalidIndent(Exception):
@@ -27,23 +26,14 @@ class State:
         return "<State %d\n%s\n%s\n%s\n>"%(self.lineno,self.shapes, self.hiddenState, self.namespace)
 
 class Interpreter:
-    def __init__(self, textInput, textTagger, canvas, stepOutput):
-        self.textInput = textInput
-        self.textTagger = textTagger
-        self.canvas = canvas
-        self.stepOutput = stepOutput
-        self.textInput.bind("<<Modified>>", self.on_modified, add="+")
-        self.steps = []
+    def __init__(self, program):
+        self.program = program
+        self.program.connect("source_modified", self.on_source_modified)
         self.state = None
-        self.activeState = None
         self.watchdog = 10000
 
-    def on_modified(self, *args):
-        if not self.textInput.edit_modified():
-            return
-        self.textInput.edit_modified(False)
-
-        if not self.textTagger.changing:
+    def on_source_modified(self, directChange):
+        if not directChange:
             #This is not a direct change from textTagger.
             # => Need to parse all text again
             self.parse_text()
@@ -51,87 +41,73 @@ class Interpreter:
                 self.run_prog()
 
         if self.valid:
-            self.canvas.update(self.activeState)
-            self.stepOutput.update(self)
+            self.program.event("steps_modified")()
 
-    def set_activeState(self, state):
-        self.activeState = state
-        self.canvas.update(state)
-
-    def new_state(self, lineno):
-        if not self.state:
-            self.state = State(lineno)
-            self.state.hiddenState.update({'fillColor'       : nodes.Value("#000000"),
+    def new_state(self, lineno, state):
+        if not state:
+            state = State(lineno)
+            state.hiddenState.update({'fillColor'       : nodes.Value("#000000"),
                                       'view_left'       : nodes.Value(0),
                                       'view_width'      : nodes.Value(100),
                                       'view_top'        : nodes.Value(0),
                                       'view_height'     : nodes.Value(100)
                                  })
         else:
-            self.state = self.state.new_child(lineno)
-        return self.state
+            state = state.new_child(lineno)
+        return state
 
     def parse_text(self):
-        self.prog = []
-        self.source = self.textInput.get_source()
-        self.textInput.clean_tags()
+        self.program.actors = []
         self.valid = True
-        for lineno, line in self.source:
-            if not line or line.isspace():
+        for line in self.program.source:
+            if not line:
                 continue
-            try:
-                instruction = grammar.parse_instruction(line)
-                self.textTagger.tag_line(lineno, instruction)
-            except NoMatch:
-                level = grammar.get_level(line)
-                self.textInput.tag_add("invalidSyntax", "%d.%d"%(lineno, level), "%d.0 lineend"%lineno)
+            if line.valid:
+                actor = line.parsed()
+                self.program.actors.append(Instruction(line, actor))
+            else:
                 self.valid = False
-                continue
-            if self.valid:
-                actor = instruction()
-                self.prog.append((lineno, actor))
 
     def pass_level(self, level, pc):
-        while pc < len(self.prog) and self.prog[pc][1].level >= level:
+        while pc < len(self.program.actors) and self.program.actors[pc].level >= level:
             pc += 1
         return pc
 
-    def run_level(self, level, pc):
-        while pc < len(self.prog):
-            lineno, actor = self.prog[pc]
+    def run_level(self, state, level, pc):
+        while pc < len(self.program.actors):
+            instruction = self.program.actors[pc]
             self.watchdog -= 1
             if not self.watchdog:
                 raise ToManyInstruction()
-            if actor.level < level:
+            if instruction.level < level:
                 break
-            if actor.level > level:
-                raise InvalidIndent(pc, actor.level, level)
+            if instruction.level > level:
+                raise InvalidIndent(pc, instruction.level, level)
             pc += 1
-            if actor.klass in ("_if", "_while"):
-                result = actor(self.state)
-                self.steps.append((lineno, self.state))
+            if instruction.klass in ("_if", "_while"):
+                result = instruction.actor(state)
+                self.program.steps.append(Step(instruction, state))
                 while result:
-                    pc_ = self.run_level(self.prog[pc][1].level, pc)
-                    if actor.klass == "_if":
+                    pc_, state = self.run_level(state, self.program.actors[pc].level, pc)
+                    if instruction.klass == "_if":
                         pc = pc_
                         break
-                    result = actor(self.state)
-                    self.steps.append((lineno, self.state))
+                    result = instruction.actor(state)
+                    self.program.steps.append(Step(instruction, state))
                 else:
-                    pc = self.pass_level(self.prog[pc][1].level, pc)
+                    pc = self.pass_level(self.program.actors[pc].level, pc)
             else:
                 #print(self.source[lineno-1])
-                state = self.new_state(lineno)
-                actor(state)
-                self.steps.append((lineno, self.state))
+                state = self.new_state(instruction.lineno, state)
+                instruction.actor(state)
+                self.program.steps.append(Step(instruction, state))
                 #print(state)
-            
-    
-        return pc
+
+        return pc, state
     
     def run_prog(self):
-        self.state = None
-        self.steps = []
-        self.run_level(0, 0)
-        self.activeState = self.state
-        return self.state
+        self.program.init_steps()
+        _, state = self.run_level(None, 0, 0)
+        self.program.event("steps_modified")()
+        self.program.displayedStep = len(self.program.steps)-1
+
