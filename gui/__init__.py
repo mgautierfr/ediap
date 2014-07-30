@@ -1,5 +1,5 @@
 
 from .textInput import TextInput
-from .canvasOutput import CanvasOutput
+from .activeStateShower import ActiveStateShower
 from .stepOutput import StepOutput
 

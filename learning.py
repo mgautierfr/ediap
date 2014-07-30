@@ -41,7 +41,7 @@ def main():
     
     text = gui.TextInput(root, helpv, program)
     
-    canvas = gui.CanvasOutput(root, program)
+    canvas = gui.ActiveStateShower(root, program)
 
     stepOutput = gui.StepOutput(root, text, program)
 

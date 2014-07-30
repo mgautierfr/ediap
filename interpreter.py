@@ -47,6 +47,7 @@ class Interpreter:
                                       'view_top'        : nodes.Value(0),
                                       'view_height'     : nodes.Value(100)
                                  })
+            state.hiddenState['fillColor'].opositColor = "#FFFFFF"
         else:
             state = state.new_child(lineno)
         return state

@@ -16,6 +16,7 @@ class _ColorNode(_nodes.Node):
         r = min(max(self.r(), 0), 255)
         v = min(max(self.v(), 0), 255)
         b = min(max(self.b(), 0), 255)
+        self.opositColor = "#%02x%02x%02x"%(255-r,255-v,255-b)
         return "#%02x%02x%02x"%(r,v,b)
 
 class _IntArgument:
@@ -160,3 +161,4 @@ class _if(_Actor):
 
 class _while(_if):
     pass
+
