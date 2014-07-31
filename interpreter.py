@@ -77,7 +77,7 @@ class Interpreter:
             if instruction.level < level:
                 break
             if instruction.level > level:
-                raise InvalidIndent(pc, instruction.level, level)
+                raise InvalidIndent(pc, instruction.level, level, str(instruction.line))
             pc += 1
             if instruction.klass in ("_if", "_while"):
                 result = instruction.actor(state)

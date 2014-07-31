@@ -20,8 +20,8 @@ class Line:
         except NoMatch:
             self.parsed = None
 
-    def __true__(self):
-        return line and not line.isspace()
+    def __bool__(self):
+        return bool(self.text) and not self.text.isspace()
 
     def __str__(self):
         return self.text
@@ -75,10 +75,15 @@ class Program(utils.EventSource):
         for lineno, line in enumerate(lines, 1):
             self.source.append(Line(lineno, line))
 
-    def update_text(self, lineno, text, do_event):
-        self.source[lineno].update_text(text)
-        if do_event:
-            self.event("source_changed")()
+    def update_text(self, index, text):
+        if index < len(self.source):
+            if text != self.source[index].text:
+                self.source[index].update_text(text)
+        else:
+            self.source.append(Line(index+1, text))
+
+    def clean_after(self, index):
+        self.source[index+1:] = []
 
     @property
     def displayedStep(self):

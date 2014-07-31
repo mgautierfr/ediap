@@ -162,19 +162,17 @@ class TextInput(tkinter.Text):
     def on_textModified(self, event):
         lines = self.get("1.0", "end").split("\n")
         for lineno, line in enumerate(lines):
-            try:
-                if line != self.program.source[lineno].text:
-                    self.program.update_text(lineno, line, do_event = not self.changing)
-            except IndexError:
-                pass
+            self.program.update_text(lineno, line)
+        self.program.clean_after(lineno)
         self.edit_modified(False)
+        if not self.changing:
+            self.program.event("source_changed")()
             
 
     def on_modified(self):
         self.clean_tags()
         for line in self.program.source:
             if line.valid:
-                pass
                 self.tag_line(line)
             else:
                 self.tag_add("invalidSyntax", "%d.%d"%(line.lineno, line.level), "%d.0 lineend"%line.lineno)
