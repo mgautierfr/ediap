@@ -18,7 +18,10 @@ class StepChanger(tkinter.Scale):
         self['to'] = len(self.program.steps)-1
 
     def on_activeStep_changed(self, step):
-        self.activeStep.set(step)
+        if step is None:
+            self.activeStep.set(0)
+        else:
+            self.activeStep.set(step)
 
     def showStep(self, *args):
         self.program.displayedStep = self.activeStep.get()
