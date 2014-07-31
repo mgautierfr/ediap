@@ -8,18 +8,68 @@ class InvalidIndent(Exception):
 class ToManyInstruction(Exception):
     pass
 
+class NamespaceDict:
+    def __init__(self, parent = None):
+        self.parent = parent
+        self.dict   = {}
+
+    def __getitem__(self, name):
+        try:
+            return self.dict[name]
+        except KeyError:
+            if self.parent is None:
+                raise
+            return self.parent[name]
+
+    def __setitem__(self, name, value):
+        if self.parent and name in self.parent:
+            self.parent[name] = value
+        self.dict[name] = value
+
+    def __contains__(self, name):
+        if name in self.dict:
+            return True
+        if self.parent and name in self.parent:
+            return True
+        return False
+
+    def keys(self):
+        for key in sorted(self.dict.keys()):
+            yield key
+        if self.parent:
+            for key in self.parent.keys():
+                if key not in self.dict:
+                    yield key
+
+    def clone(self):
+        clone = NamespaceDict()
+        if self.parent:
+            clone.parent = self.parent.clone()
+        clone.dict = dict(self.dict)
+        return clone
+
 class State:
     def __init__(self, lineno):
         self.lineno = lineno
         self.shapes = []
         self.hiddenState = {}
-        self.namespace = {}
+        self.namespace = NamespaceDict()
+        self.functions = {}
 
-    def new_child(self, lineno):
-        child = State(lineno)
-        child.shapes = self.shapes[:]
-        child.hiddenState = dict(self.hiddenState)
-        child.namespace = dict(self.namespace)
+    def clone(self, lineno):
+        clone = State(lineno)
+        clone.shapes = self.shapes[:]
+        clone.hiddenState = dict(self.hiddenState)
+        clone.namespace = self.namespace.clone()
+        clone.functions = dict(self.functions)
+        return clone
+
+    def child(self):
+        child = State(self.lineno)
+        child.shapes = self.shapes
+        child.hiddenState = self.hiddenState
+        child.namespace = NamespaceDict(self.namespace)
+        child.functions = dict(self.functions)
         return child
 
     def __str__(self):
@@ -48,7 +98,7 @@ class Interpreter:
                                  })
             state.hiddenState['fillColor'].opositColor = "#FFFFFF"
         else:
-            state = state.new_child(lineno)
+            state = state.clone(lineno)
         return state
 
     def parse_text(self):
@@ -88,6 +138,21 @@ class Interpreter:
                     self.program.steps.append(Step(instruction, state))
                 else:
                     pc = self.pass_level(self.program.actors[pc].level, pc)
+            elif instruction.klass == "_functionDef":
+                state = self.new_state(instruction.lineno, state)
+                instruction.actor(state)
+                state.functions[instruction.actor.name.v].pc = pc
+                pc = self.pass_level(self.program.actors[pc].level, pc)
+            elif instruction.klass == "_functionCall":
+                state = self.new_state(instruction.lineno, state)
+                newState = state.child()
+                instruction.actor(newState)
+                pc_ = newState.functions[instruction.actor.name.v].pc
+                _, state_ = self.run_level(newState, self.program.actors[pc_].level, pc_)
+                state.hiddenState = state_.hiddenState
+                state.shapes = state_.shapes
+                state.namespace = state_.namespace.parent
+                self.program.steps.append(Step(instruction, state))
             else:
                 #print(self.source[lineno-1])
                 state = self.new_state(instruction.lineno, state)

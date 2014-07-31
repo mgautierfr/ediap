@@ -13,8 +13,11 @@ class Call(Instruction):
         self.args = args
 
     def __call__(self):
-        function = getattr(functions, self.name.v)
-        return function(self.level, *self.args)
+        function = getattr(functions, self.name.v, None)
+        if function is not None:
+            return function(self.level, *self.args)
+        else:
+            return functions._functionCall(self.level, self.name, self.args)
         
 
 class Assignement(Instruction):
@@ -35,3 +38,12 @@ class If(Instruction):
 class While(If):
     def __call__(self):
         return functions._while(self.level, self.test)
+
+
+class FunctionDef(Instruction):
+    def __init__(self, name, args):
+        self.name = name
+        self.args = args
+
+    def __call__(self):
+        return functions._functionDef(self.level, self.name, self.args)

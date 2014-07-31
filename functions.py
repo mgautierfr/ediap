@@ -33,6 +33,11 @@ class _IntArgument:
             value = min(self.stop, value)
         return value
 
+class _FunctionDefinition:
+    def __init__(self, name, args):
+        self.name = name,
+        self.args = args
+
 class _Actor:
     def __init__(self, level):
         self.level = level
@@ -140,7 +145,25 @@ class _if(_Actor):
         test_node = self.test.get_node(state.namespace)
         return test_node()
 
-
 class _while(_if):
     pass
 
+class _functionDef(_Actor):
+    def __init__(self, level, name, args):
+        _Actor.__init__(self, level)
+        self.name = name
+        self.args = args
+
+    def __call__(self, state):
+        state.functions[self.name.v] = _FunctionDefinition(self.name.v, [arg.v for arg in self.args])
+
+class _functionCall(_Actor):
+    def __init__(self, level, name, args):
+        _Actor.__init__(self, level)
+        self.name = name
+        self.args = args
+
+    def __call__(self, state):
+        functionDef = state.functions[self.name.v]
+        for argName, arg in zip(functionDef.args, self.args):
+            state.namespace[argName] = arg.get_node(state.namespace)

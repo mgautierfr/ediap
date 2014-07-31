@@ -142,8 +142,17 @@ def whilestmt():
     test = expr()
     return instructions.While(test)
 
+@tri
+def functionstmt():
+    special('function')
+    name = identifier()
+    special('(')
+    arguments = sep(identifier, p(special, ','))
+    special(')')
+    return instructions.FunctionDef(name, arguments)
+
 def part():
-    expr = choice(functioncall, assignement, ifstmt, whilestmt)
+    expr = choice(functionstmt, functioncall, assignement, ifstmt, whilestmt)
     eof()
     return expr
 
@@ -157,3 +166,4 @@ def parse_instruction(text):
     statement = run_text_parser(part, text)[0]
     statement.level = get_level(text)
     return statement
+

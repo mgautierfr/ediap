@@ -55,10 +55,14 @@ class LineTagger:
     def tag_Call(self, node):
         function_name = node.name.v
         self.tag_functionIdentifier(node.name)
-        for index, argument in enumerate(node.args):
-            self.context.append(getattr(functions, function_name).arguments[index])
-            self.tag_argument(function_name, index, argument)
-            self.context.pop()
+        if hasattr(functions, function_name):
+            for index, argument in enumerate(node.args):
+                self.context.append(getattr(functions, function_name).arguments[index])
+                self.tag_argument(function_name, index, argument)
+                self.context.pop()
+        else:
+            for argument in node.args:
+                self.tag(argument)
 
     def tag_functionIdentifier(self, node):
         tag_name = "%s_%d_call"%(node.v, self.lineno)
@@ -200,3 +204,4 @@ class TextInput(tkinter.Text):
 
     def tag_line(self, line):
         LineTagger(self, line.lineno).tag(line.parsed)
+
