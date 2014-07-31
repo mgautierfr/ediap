@@ -102,9 +102,6 @@ class fill(_Actor):
         r, v, b = (token.get_node(state.namespace) for token in (self.r, self.v, self.b))
         state.hiddenState['fillColor'] = _ColorNode(r, v, b)
 
-    def update(self,state, v):
-        return self.act(state)
-
 
 class view(_Actor):
     help = "Change the view of the canvas"
@@ -124,9 +121,6 @@ class view(_Actor):
         state.hiddenState['view_width'] = self.width.get_node(state.namespace)
         state.hiddenState['view_height'] = self.height.get_node(state.namespace)
 
-    def update(self,state, v):
-        return self.act(state)
-
 
 class _setter(_Actor):
     def __init__(self, level, name, value):
@@ -137,13 +131,6 @@ class _setter(_Actor):
     def __call__(self, state):
         state.namespace[self.name.v] = self.value.get_node(state.namespace)
 
-    def act(self, state):
-        depend = set([self.value])|self.value.depend(state)
-        state.namespace[self.name] = (state, depend, self.value.execute(state.namespace))
-
-    def update(self,state, v):
-        return self.act(state)
-
 class _if(_Actor):
     def __init__(self, level, test):
         _Actor.__init__(self, level)
@@ -153,11 +140,6 @@ class _if(_Actor):
         test_node = self.test.get_node(state.namespace)
         return test_node()
 
-    def act(self, state):
-        return self.test.execute(state.namespace)
-
-    def update(self,state, v):
-        return self.act(state)
 
 class _while(_if):
     pass
