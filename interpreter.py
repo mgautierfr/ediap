@@ -30,7 +30,7 @@ class Interpreter:
         self.program = program
         self.program.connect("source_changed", self.on_source_changed)
         self.state = None
-        self.watchdog = 10000
+        self.watchdog = 1000
 
     def on_source_changed(self):
         self.parse_text()
@@ -71,9 +71,6 @@ class Interpreter:
     def run_level(self, state, level, pc):
         while pc < len(self.program.actors):
             instruction = self.program.actors[pc]
-            self.watchdog -= 1
-            if not self.watchdog:
-                raise ToManyInstruction()
             if instruction.level < level:
                 break
             if instruction.level > level:
@@ -97,12 +94,17 @@ class Interpreter:
                 instruction.actor(state)
                 self.program.steps.append(Step(instruction, state))
                 #print(state)
+            if len(self.program.steps) >= self.watchdog:
+                raise ToManyInstruction()
 
         return pc, state
     
     def run_prog(self):
         self.program.init_steps()
-        _, state = self.run_level(None, 0, 0)
+        try:
+            _, state = self.run_level(None, 0, 0)
+        except ToManyInstruction:
+            print("to many instruction")
         self.program.event("steps_changed")()
         self.program.displayedStep = len(self.program.steps)-1
 
