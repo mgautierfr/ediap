@@ -54,8 +54,8 @@ class LineTagger:
 
     def tag_Call(self, node):
         function_name = node.name.v
-        self.tag_functionIdentifier(node.name)
         if hasattr(functions, function_name):
+            self.tag_functionIdentifier(node.name)
             for index, argument in enumerate(node.args):
                 self.context.append(getattr(functions, function_name).arguments[index])
                 self.tag_argument(function_name, index, argument)
@@ -140,6 +140,11 @@ class LineTagger:
         end_index = "%s + 5c"%(start_index)
         self.text.tag_add("keyword", start_index, end_index)
         self.tag(instruction.test)
+
+    def tag_FunctionDef(self, instruction):
+        start_index = "%d.%d"%(self.lineno, instruction.level)
+        end_index = "%s + 8c"%(start_index)
+        self.text.tag_add("keyword", start_index, end_index)
 
 class TextInput(tkinter.Text):
     def __init__(self, parent, helpv, program):
