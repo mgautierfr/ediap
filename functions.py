@@ -166,4 +166,5 @@ class _functionCall(_Actor):
     def __call__(self, state):
         functionDef = state.functions[self.name.v]
         for argName, arg in zip(functionDef.args, self.args):
-            state.namespace[argName] = arg.get_node(state.namespace)
+            state.namespace.dict[argName] = arg.get_node(state.namespace)
+
