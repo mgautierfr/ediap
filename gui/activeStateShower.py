@@ -13,7 +13,7 @@ class ActiveStateShower(tkinter.Frame):
         self.variables.pack()
         self.program = program
         self.program.connect("token_changed", self.on_stepChanged)
-        self.program.connect("displayedStepChange", self.on_stepChanged)
+        self.program.connect("activeStep_changed", self.on_stepChanged)
         self.idle_handle = None
 
     def on_stepChanged(self, *args):
@@ -62,3 +62,4 @@ class ActiveStateShower(tkinter.Frame):
         for key in sorted(state.namespace.keys()):
             value = state.namespace[key]()
             self.variables.insert("", "end", key, text=key, value=value, tags=(key,))
+

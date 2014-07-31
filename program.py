@@ -78,7 +78,7 @@ class Program(utils.EventSource):
     def update_text(self, lineno, text, do_event):
         self.source[lineno].update_text(text)
         if do_event:
-            self.event("source_modified")()
+            self.event("source_changed")()
 
     @property
     def displayedStep(self):
@@ -87,12 +87,12 @@ class Program(utils.EventSource):
     @displayedStep.setter
     def displayedStep(self, value):
         self._displayedStep = value
-        self.event("displayedStepChange")(value)
+        self.event("activeStep_changed")(value)
 
     def show_helper(self, lineno, index):
         self.helpers = (lineno, index)
-        self.event("displayedStepChange")(self._displayedStep)
+        self.event("activeStep_changed")(self._displayedStep)
 
     def hide_helpers(self):
         self.helpers = (None, None)
-        self.event("displayedStepChange")(self._displayedStep)
+        self.event("activeStep_changed")(self._displayedStep)

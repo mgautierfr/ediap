@@ -28,12 +28,11 @@ class State:
 class Interpreter:
     def __init__(self, program):
         self.program = program
-        self.program.connect("source_modified", self.on_source_modified)
+        self.program.connect("source_changed", self.on_source_changed)
         self.state = None
         self.watchdog = 10000
 
-    def on_source_modified(self):
-
+    def on_source_changed(self):
         self.parse_text()
         if self.valid:
             self.run_prog()
@@ -104,6 +103,6 @@ class Interpreter:
     def run_prog(self):
         self.program.init_steps()
         _, state = self.run_level(None, 0, 0)
-        self.program.event("steps_modified")()
+        self.program.event("steps_changed")()
         self.program.displayedStep = len(self.program.steps)-1
 

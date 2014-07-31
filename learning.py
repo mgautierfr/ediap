@@ -58,7 +58,7 @@ def main():
     stepOutput.place()
     text.place()
 
-    root.after(500, lambda : program.event("source_modified")())
+    root.after(500, lambda : program.event("source_changed")())
     root.mainloop()
 
 

@@ -37,14 +37,14 @@ class StepOutput(tkinter.Frame):
         self.helpers = (None, None)
         self.text = text
         self.program = program
-        self.program.connect("steps_modified", self.update)
-        self.program.connect("displayedStepChange", self.on_displayedStepChanged)
+        self.program.connect("steps_changed", self.on_steps_changed)
+        self.program.connect("activeStep_changed", self.on_activeStep_changed)
         self.changing = False
 
     def place(self):
         self.pack(fill="both", expand=1, side="right")
 
-    def on_displayedStepChanged(self, step):
+    def on_activeStep_changed(self, step):
         if self.oldStep is not None:
             self.steps.itemconfig("step_%d"%self.oldStep, fill="black")
         self.oldStep = self.program.displayedStep
@@ -52,7 +52,7 @@ class StepOutput(tkinter.Frame):
             self.steps.xview_moveto(max(0, self.oldStep-5)/self.nbSteps)
         self.steps.itemconfig("step_%d"%self.oldStep , fill="red")
 
-    def update(self, *args):
+    def on_steps_changed(self, *args):
         self.steps.delete('all')
         for nb, step in enumerate(self.program.steps):
             pos = self.text.bbox("%d.0"%(step.lineno))

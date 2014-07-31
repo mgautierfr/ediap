@@ -151,8 +151,8 @@ class TextInput(tkinter.Text):
         self.target = None
         self.helpv = helpv
         self.changing = False
-        self.program.connect("source_modified", self.on_modified)
-        self.program.connect("displayedStepChange", self.on_displayedStepChange)
+        self.program.connect("source_changed", self.on_modified)
+        self.program.connect("activeStep_changed", self.on_activeStep_changed)
         for line in program.source:
             self.insert("end", str(line)+"\n")
 
@@ -179,7 +179,7 @@ class TextInput(tkinter.Text):
             else:
                 self.tag_add("invalidSyntax", "%d.%d"%(line.lineno, line.level), "%d.0 lineend"%line.lineno)
 
-    def on_displayedStepChange(self, step):
+    def on_activeStep_changed(self, step):
         self.tag_remove("highlihgt", "1.0", "end")
         self.tag_add("highlihgt", "%d.0"%self.program.steps[step].lineno, "%d.0 +1l"%self.program.steps[step].lineno)
 
@@ -195,7 +195,7 @@ class TextInput(tkinter.Text):
         if self.changing:
             self.target = None
             self.changing = False
-            self.program.event("source_modified")()
+            self.program.event("source_changed")()
 
     def clean_tags(self):
         [self.tag_remove(n, "1.0", "end") for n in self.tag_names()]
