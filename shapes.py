@@ -11,6 +11,39 @@ class Shape:
     def draw_helper(self, index, canvas):
         pass
 
+class Polygon(Shape):
+    def __init__(self, lineno, fillColor, coords):
+        Shape.__init__(self, lineno)
+        self.fillColor = fillColor
+        self.coords = coords
+
+    def depend(self):
+        return self.fillColor.depend().union(c.depend() for c in self.coords)
+
+    def draw(self, canvas):
+        coords = [c()*(canvas.winfo_height() if i%2 else canvas.winfo_width()) for i, c in enumerate(self.coords)]
+        self.shapeid = canvas.create_polygon(*coords, fill=self.fillColor())
+
+    def update(self, canvas):
+        coords = [c()*(canvas.winfo_height() if i%2 else canvas.winfo_width()) for i, c in enumerate(self.coords)]
+        canvas.coords(self.shapeid, *coords)
+        canvas.item_config(self.shapeid, fill=self.fillColor())
+
+    def draw_helper(self, index, canvas):
+        if index%2:
+            coords = self.get_y_helper_coords(self.coords[index-1], self.coords[index], canvas)
+        else:
+            coords = self.get_x_helper_coords(self.coords[index], self.coords[index+1], canvas)
+        canvas.create_line(*coords, fill="red", tags="helpers")
+
+    def get_x_helper_coords(self, x, y, canvas):
+        y = y()*canvas.winfo_height()
+        return 0, y, x()*canvas.winfo_width(), y
+
+    def get_y_helper_coords(self, x, y, canvas):
+        x = x()*canvas.winfo_width()
+        return x, 0, x, y()*canvas.winfo_height()
+
 
 class Rectangle(Shape):
     def __init__(self, lineno, x0, y0, x1, y1, fillColor):
@@ -78,4 +111,3 @@ class Ellipse(Rectangle):
     def get_y_helper_coords(self, canvas):
         middle_x = (self.x0()+self.x1())/2*canvas.winfo_width()
         return middle_x, 0, middle_x, self.y0()*canvas.winfo_height()
-

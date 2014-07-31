@@ -76,10 +76,6 @@ class rectangle(_Actor):
         x0, y0, x1, y1 = self.get_bounding_rect(state)
         state.shapes.append(_shapes.Rectangle(state.lineno, x0, y0, x1, y1, state.hiddenState['fillColor']))
 
-    def update(self, state, shape):
-        shape.x0, shape.y0, shape.x1, shape.y1 = self.get_bounding_rect(state)
-        shape.fillColor = state.hiddenState['fillColor']
-
 class ellipse(rectangle):
     help = "Draw a ellipse"
     arguments = [_IntArgument("x position of the top left corner"),
@@ -91,6 +87,66 @@ class ellipse(rectangle):
     def __call__(self, state):
         x0, y0, x1, y1 = self.get_bounding_rect(state)
         state.shapes.append(_shapes.Ellipse(state.lineno, x0, y0, x1, y1, state.hiddenState['fillColor']))
+
+class _polygon(_Actor):
+    @staticmethod
+    def update_coord(point, state):
+        x, y = point
+        x = x.get_node(state.namespace)
+        y = y.get_node(state.namespace)
+        x = _nodes.Operator('-', x, state.hiddenState['view_left'])
+        y = _nodes.Operator('-', y, state.hiddenState['view_top'])
+        x = _nodes.Operator('/', x, state.hiddenState['view_width'])
+        y = _nodes.Operator('/', y, state.hiddenState['view_height'])
+        return x, y
+
+class quad(_polygon):
+    help = "Draw a quad"
+    arguments = [_IntArgument("x position of the top first corner"),
+                 _IntArgument("y position of the top first corner"),
+                 _IntArgument("x position of the top second corner"),
+                 _IntArgument("y position of the top second corner"),
+                 _IntArgument("x position of the top third corner"),
+                 _IntArgument("y position of the top third corner"),
+                 _IntArgument("x position of the top fourth corner"),
+                 _IntArgument("y position of the top fourth corner"),
+                ]
+
+    def __init__(self, level, x0,y0, x1,y1, x2,y2, x3,y3):
+        _polygon.__init__(self, level)
+        self.p0 = x0, y0
+        self.p1 = x1, y1
+        self.p2 = x2, y2
+        self.p3 = x3, y3
+
+    def __call__(self, state):
+        p0 = self.update_coord(self.p0, state)
+        p1 = self.update_coord(self.p1, state)
+        p2 = self.update_coord(self.p2, state)
+        p3 = self.update_coord(self.p3, state)
+        state.shapes.append(_shapes.Polygon(state.lineno, state.hiddenState['fillColor'], (p0+p1+p2+p3)))
+
+class triangle(_polygon):
+    help = "Draw a quad"
+    arguments = [_IntArgument("x position of the top first corner"),
+                 _IntArgument("y position of the top first corner"),
+                 _IntArgument("x position of the top second corner"),
+                 _IntArgument("y position of the top second corner"),
+                 _IntArgument("x position of the top third corner"),
+                 _IntArgument("y position of the top third corner")
+                ]
+
+    def __init__(self, level, x0,y0, x1,y1, x2,y2):
+        _polygon.__init__(self, level)
+        self.p0 = x0, y0
+        self.p1 = x1, y1
+        self.p2 = x2, y2
+
+    def __call__(self, state):
+        p0 = self.update_coord(self.p0, state)
+        p1 = self.update_coord(self.p1, state)
+        p2 = self.update_coord(self.p2, state)
+        state.shapes.append(_shapes.Polygon(state.lineno, state.hiddenState['fillColor'], (p0+p1+p2)))
 
 class fill(_Actor):
     help = "Change the color of the fill parameter"
