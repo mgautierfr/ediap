@@ -8,7 +8,12 @@ import interpreter
 import gui
 from program import Program, Line
 
-default_source = """x = 11
+default_source = """function test(a, b)
+  fill(a*10, b, 100)
+  ellipse(x*a, b, 100, 100)
+  x = 5
+  ellipse(x*a, b, 100, 100)
+x = 11
 view(0, 0, 1000, 1000)
 fill(0, 0, 255)
 ellipse(10, 10, 100, 100)
@@ -16,6 +21,7 @@ rectangle(200, 200+x*9, 150, 50)
 fill(255, 255, 0)
 if x == 11
   fill(0, 0, 255)
+test(10, 200)
 x = 0
 while x < 3
   rectangle(500+110*x, 100+10*x, 100, 100)
@@ -23,6 +29,7 @@ while x < 3
 x=0
 while x < 5
   y = 0
+  test(5, 5)
   while y < 5
     fill(25*x, 25*y, 0)
     rectangle(500+50*x, 500+50*y, 30, 30)
