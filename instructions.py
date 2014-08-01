@@ -18,6 +18,12 @@ class Call(Instruction):
             return function(self.level, *self.args)
         else:
             return functions._functionCall(self.level, self.name, self.args)
+
+    def get_token_at_pos(self, pos):
+        for arg in self.args:
+            if arg.start <= pos <= arg.end:
+                return arg.get_token_at_pos(pos)
+        return None
         
 
 class Assignement(Instruction):
@@ -28,12 +34,22 @@ class Assignement(Instruction):
     def __call__(self):
         return functions._setter(self.level, self.name, self.value)
 
+    def get_token_at_pos(self, pos):
+        if self.value.start <= pos <= self.value.end:
+            return self.value.get_token_at_pos(pos)
+        return None
+
 class If(Instruction):
     def __init__(self, test):
         self.test = test
 
     def __call__(self):
         return functions._if(self.level, self.test)
+
+    def get_token_at_pos(self, pos):
+        if self.test.start <= pos <= self.test.end:
+            return self.test.get_token_at_pos(pos)
+        return None
 
 class While(If):
     def __call__(self):
@@ -47,3 +63,9 @@ class FunctionDef(Instruction):
 
     def __call__(self):
         return functions._functionDef(self.level, self.name, self.args)
+
+    def get_token_at_pos(self, pos):
+        for arg in self.args:
+            if arg.start <= pos <= arg.end:
+                return arg.get_token_at_pos(pos)
+        return None

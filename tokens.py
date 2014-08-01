@@ -12,6 +12,9 @@ class Token:
     def klass(self):
         return self.__class__.__name__
 
+    def get_token_at_pos(self, pos):
+        return None
+
 class Value(Token):
     def __init__(self, value, start, end):
         Token.__init__(self, start, end)
@@ -20,6 +23,9 @@ class Value(Token):
 
     def get_node(self, namespace):
         return self._node
+
+    def get_token_at_pos(self, pos):
+        return self
 
 class Int(Value):
     pass
@@ -30,6 +36,9 @@ class Float(Value):
 class Paren(Value):
     def get_node(self, namespace):
         return self.v.get_node(namespace)
+
+    def get_token_at_pos(self, pos):
+        return self.v.get_token_at_pos(pos)
 
 class Identifier(Value):
     def get_node(self, namespace):
@@ -60,4 +69,9 @@ class BinaryOp(Token):
     def __str__(self):
         return "%s %s %s"%(self.name, self.start, self.end)
 
-
+    def get_token_at_pos(self, pos):
+        if self.x.start <= pos <= self.x.end:
+            return self.x.get_token_at_pos(pos)
+        if self.y.start <= pos <= self.y.end:
+            return self.y.get_token_at_pos(pos)
+        return None
