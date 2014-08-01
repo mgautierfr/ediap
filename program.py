@@ -65,7 +65,7 @@ class Program(utils.EventSource):
         self.actors        = []
         self.init_steps()
         self.helpers       = (None, None)
-        self.currentToken  = None
+        self.current       = (None, None)
 
     def init_steps(self):
         self.steps = ExtendList()

@@ -18,7 +18,7 @@ class Polygon(Shape):
         self.coords = coords
 
     def depend(self):
-        return self.fillColor.depend().union(c.depend() for c in self.coords)
+        return self.fillColor.depend().union(*[c.depend() for c in self.coords])
 
     def draw(self, canvas):
         coords = [c()*(canvas.winfo_height() if i%2 else canvas.winfo_width()) for i, c in enumerate(self.coords)]
@@ -27,7 +27,7 @@ class Polygon(Shape):
     def update(self, canvas):
         coords = [c()*(canvas.winfo_height() if i%2 else canvas.winfo_width()) for i, c in enumerate(self.coords)]
         canvas.coords(self.shapeid, *coords)
-        canvas.item_config(self.shapeid, fill=self.fillColor())
+        canvas.itemconfig(self.shapeid, fill=self.fillColor())
 
     def draw_helper(self, index, canvas):
         if index%2:
@@ -67,7 +67,7 @@ class Rectangle(Shape):
         x1 = self.x1()*canvas.winfo_width()
         y1 = self.y1()*canvas.winfo_height()
         canvas.coords(self.shapeid, x0, y0, x1, y1)
-        canvas.item_config(self.shapeid, fill=self.fillColor())
+        canvas.itemconfig(self.shapeid, fill=self.fillColor())
 
     def draw_helper(self, index, canvas):
         if index == 0:
@@ -102,7 +102,7 @@ class Ellipse(Rectangle):
         y0 = self.y0()*canvas.winfo_height()
         x1 = self.x1()*canvas.winfo_width()
         y1 = self.y1()*canvas.winfo_height()
-        canvas.create_oval(x0, y0, x1, y1, fill=self.fillColor())
+        self.shapeid = canvas.create_oval(x0, y0, x1, y1, fill=self.fillColor())
 
     def get_x_helper_coords(self, canvas):
         middle_y = (self.y0()+self.y1())/2*canvas.winfo_height()

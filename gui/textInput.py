@@ -153,12 +153,12 @@ class TextInput(tkinter.Text):
         self.program.set_current(current)
 
     def on_textModified(self, event):
-        lines = self.get("1.0", "end").split("\n")
-        for lineno, line in enumerate(lines):
-            self.program.update_text(lineno, line)
-        self.program.clean_after(lineno)
         self.edit_modified(False)
         if not self.textModifier.changing:
+            lines = self.get("1.0", "end").split("\n")
+            for lineno, line in enumerate(lines):
+                self.program.update_text(lineno, line)
+            self.program.clean_after(lineno)
             self.program.event("source_changed")()
 
     def on_modified(self):

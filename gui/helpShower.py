@@ -14,7 +14,10 @@ class HelpShower(tkinter.Label):
 
     def on_current_changed(self):
         line, pos = self.program.current
-        parsed = self.program.source[line-1].parsed
+        try:
+            parsed = self.program.source[line-1].parsed
+        except IndexError:
+            return
 
         self.helpv.set("")
         if parsed is None or parsed.klass != "Call":
