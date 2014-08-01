@@ -14,30 +14,35 @@ default_source = """function house(x, y, w, h)
   rectangle(x, y+h*ratio, w, h*(1-ratio))
 
 function test(a, b)
-  fill(a*10, b, 100)
   ellipse(x*a, b, 10, 10)
   x = 5
-  ellipse(x*a, b, 10, 10)
-x = 11
-view(0, 0, 100, 100)
+  ellipse(x*a, b+10, 10, 10)
+
+x = 1
 fill(0, 0, 255)
-ellipse(1, 1, 10, 10)
-rectangle(20, 20+x*9, 15, 5)
+ellipse(5, 5, 10, 10)
+rectangle(20, 5+x*2, 15, 5)
+
 fill(255, 255, 0)
-if x == 11
-  fill(0, 0, 255)
-test(1, 20)
-house(10, 10, 10, 20)
-quad(10,10, 10,20, 20,20, 20,10)
+test(5, 20)
+rectangle(20, 5+x*2, 15, 5)
+
+fill(255, 0, 255)
+house(15, 50, 15, 35)
+
+fill(0, 255, 0)
+quad(50,10, 50,20, 60,20, 60,10)
+
+fill(0, 255, 255)
 x = 0
 while x < 3
-  rectangle(50+11*x, 10+1*x, 10, 10)
+  rectangle(50+10*x, 25+2*x, 10, 10)
   x = x + 1
+
 x=0
-while x < 5
+while x < 10
   y = 0
-  test(5, 5)
-  while y < 5
+  while y < 10
     fill(25*x, 25*y, 0)
     rectangle(50+5*x, 50+5*y, 3, 3)
     y = y + 1
