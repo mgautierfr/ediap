@@ -55,39 +55,15 @@ class LineTagger:
     def tag_Call(self, node):
         function_name = node.name.v
         if hasattr(functions, function_name):
-            self.tag_functionIdentifier(node.name)
             for index, argument in enumerate(node.args):
                 self.context.append(getattr(functions, function_name).arguments[index])
-                self.tag_argument(function_name, index, argument)
+                self.directChild = True
+                self.tag(argument)
+                self.directChild = False
                 self.context.pop()
         else:
             for argument in node.args:
                 self.tag(argument)
-
-    def tag_functionIdentifier(self, node):
-        tag_name = "%s_%d_call"%(node.v, self.lineno)
-        start_index = "%d.%d"%(self.lineno, node.start)
-        end_index = "%d.%d"%(self.lineno, node.end)
-        self.text.tag_add(tag_name, start_index, end_index)
-        self.text.tag_bind(tag_name, "<Enter>", lambda e: self.text.helpv.set(getattr(functions,node.v).help))
-
-    def tag_argument(self, function_name, index, node):
-        local_context = self.context[:]
-        def on_enter(event):
-            self.text.helpv.set(local_context[-1].help)
-            self.text.program.show_helper(self.lineno, index)
-        def on_leave(event):
-            self.text.helpv.set("")
-            self.text.program.hide_helpers()
-        tag_name = "%s_%d_arg_%d"%(function_name, self.lineno, index)
-        start_index = "%d.%d"%(self.lineno, node.start)
-        end_index = "%d.%d"%(self.lineno, node.end)
-        self.text.tag_add(tag_name, start_index, end_index)
-        self.text.tag_bind(tag_name, "<Enter>", on_enter)
-        self.text.tag_bind(tag_name, "<Leave>", on_leave)
-        self.directChild = True
-        self.tag(node)
-        self.directChild = False
 
     def tag_Identifier(self, node):
         def on_enter(event):
@@ -147,10 +123,10 @@ class LineTagger:
         self.text.tag_add("keyword", start_index, end_index)
 
 class TextInput(tkinter.Text):
-    def __init__(self, parent, helpv, program):
+    def __init__(self, parent, program):
         tkinter.Text.__init__(self, parent)
         self.program = program
-        self.bind("<Button1-Motion>", self.on_motion)
+        self.bind("<Button1-Motion>", self.on_buttonMotion)
         self.bind("<Button1-ButtonRelease>", self.on_release)
         font = tkinter.font.Font(font=self['font'])
         font.configure(weight='bold')
@@ -158,7 +134,6 @@ class TextInput(tkinter.Text):
         self.tag_configure("invalidSyntax", background="#FFBBBB")
         self.tag_configure("highlihgt", background="#FFFF99")
         self.target = None
-        self.helpv = helpv
         self.changing = False
         self.program.connect("source_changed", self.on_modified)
         self.program.connect("activeStep_changed", self.on_activeStep_changed)
@@ -167,6 +142,12 @@ class TextInput(tkinter.Text):
 
         self.edit_modified(False)
         self.bind("<<Modified>>", self.on_textModified)
+        self.bind("<Motion>", self.on_motion)
+
+    def on_motion(self, event):
+        current = self.index("current")
+        current = [int(i) for i in current.split('.')]
+        self.program.set_current(current)
 
     def on_textModified(self, event):
         lines = self.get("1.0", "end").split("\n")
@@ -176,7 +157,6 @@ class TextInput(tkinter.Text):
         self.edit_modified(False)
         if not self.changing:
             self.program.event("source_changed")()
-            
 
     def on_modified(self):
         self.clean_tags()
@@ -193,7 +173,7 @@ class TextInput(tkinter.Text):
     def place(self):
         self.pack(side="left", fill="y", expand=0)
 
-    def on_motion(self, event):
+    def on_buttonMotion(self, event):
         if self.target is None:
             return "break"
         return self.target(event)

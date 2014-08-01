@@ -65,6 +65,7 @@ class Program(utils.EventSource):
         self.actors        = []
         self.init_steps()
         self.helpers       = (None, None)
+        self.currentToken  = None
 
     def init_steps(self):
         self.steps = ExtendList()
@@ -101,3 +102,7 @@ class Program(utils.EventSource):
     def hide_helpers(self):
         self.helpers = (None, None)
         self.event("activeStep_changed")(self._displayedStep)
+
+    def set_current(self, current):
+        self.current = current
+        self.event("current_changed")()

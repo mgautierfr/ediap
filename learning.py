@@ -46,32 +46,26 @@ while x < 5
 
 def main():
     root = tkinter.Tk()
-    
-    helpv = tkinter.StringVar()
 
     program = Program()
-
     program.set_source(default_source.split('\n'))
 
+    #Create the gui widgets
     stepChanger = gui.StepChanger(root, program)
-    
-    text = gui.TextInput(root, helpv, program)
-    
+    text = gui.TextInput(root, program)
     canvas = gui.ActiveStateShower(root, program)
-
     stepOutput = gui.StepOutput(root, text, program)
+    help = gui.HelpShower(root, program)
 
-    interpretor = interpreter.Interpreter(program)
-
+    #Place them in the rigth order
     stepChanger.place()
-
+    help.place()
     canvas.place()
-    label = tkinter.Label(root, textvariable=helpv)
-    label.pack(side="bottom", anchor="s")
-
     stepOutput.place()
     text.place()
 
+    # create the interpretor and go, go, go
+    interpretor = interpreter.Interpreter(program)
     root.after(500, lambda : program.event("source_changed")())
     root.mainloop()
 
