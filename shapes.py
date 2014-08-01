@@ -29,12 +29,14 @@ class Polygon(Shape):
         canvas.coords(self.shapeid, *coords)
         canvas.itemconfig(self.shapeid, fill=self.fillColor())
 
-    def draw_helper(self, index, canvas):
-        if index%2:
-            coords = self.get_y_helper_coords(self.coords[index-1], self.coords[index], canvas)
-        else:
-            coords = self.get_x_helper_coords(self.coords[index], self.coords[index+1], canvas)
-        canvas.create_line(*coords, fill="red", tags="helpers")
+    def draw_helper(self, token, canvas):
+        for index, coord in enumerate(self.coords):
+            if token in coord.depend():
+                if index%2:
+                    coords = self.get_y_helper_coords(self.coords[index-1], self.coords[index], canvas)
+                else:
+                    coords = self.get_x_helper_coords(self.coords[index], self.coords[index+1], canvas)
+                canvas.create_line(*coords, fill="red", tags="helpers")
 
     def get_x_helper_coords(self, x, y, canvas):
         y = y()*canvas.winfo_height()
@@ -46,8 +48,9 @@ class Polygon(Shape):
 
 
 class Rectangle(Shape):
-    def __init__(self, lineno, x0, y0, x1, y1, fillColor):
+    def __init__(self, lineno, x0, y0, x1, y1, x, y, w, h, fillColor):
         Shape.__init__(self, lineno)
+        self.x, self.y, self.w, self.h = x, y, w, h
         self.x0, self.y0, self.x1, self.y1 = x0, y0, x1, y1
         self.fillColor = fillColor
 
@@ -69,16 +72,18 @@ class Rectangle(Shape):
         canvas.coords(self.shapeid, x0, y0, x1, y1)
         canvas.itemconfig(self.shapeid, fill=self.fillColor())
 
-    def draw_helper(self, index, canvas):
-        if index == 0:
+    def draw_helper(self, token, canvas):
+        coords = None
+        if token in self.x.depend():
             coords = self.get_x_helper_coords(canvas)
-        if index == 1:
+        if token in self.y.depend():
             coords = self.get_y_helper_coords(canvas)
-        if index == 2:
+        if token in self.w.depend():
             coords = self.get_w_helper_coords(canvas)
-        if index == 3:
+        if token in self.h.depend():
             coords = self.get_h_helper_coords(canvas)
-        canvas.create_line(*coords, fill="red", tags="helpers")
+        if coords:
+            canvas.create_line(*coords, fill="red", tags="helpers")
 
     def get_x_helper_coords(self, canvas):
         y0 = self.y0()*canvas.winfo_height()

@@ -74,7 +74,8 @@ class rectangle(_Actor):
 
     def __call__(self, state):
         x0, y0, x1, y1 = self.get_bounding_rect(state)
-        state.shapes.append(_shapes.Rectangle(state.lineno, x0, y0, x1, y1, state.hiddenState['fillColor']))
+        x, y, w, h = (t.get_node(state.namespace) for t in (self.x, self.y, self.w, self.h))
+        state.shapes.append(_shapes.Rectangle(state.lineno, x0, y0, x1, y1, x, y, w, h, state.hiddenState['fillColor']))
 
 class ellipse(rectangle):
     help = "Draw a ellipse"
@@ -86,7 +87,8 @@ class ellipse(rectangle):
 
     def __call__(self, state):
         x0, y0, x1, y1 = self.get_bounding_rect(state)
-        state.shapes.append(_shapes.Ellipse(state.lineno, x0, y0, x1, y1, state.hiddenState['fillColor']))
+        x, y, w, h = (t.get_node(state.namespace) for t in (self.x, self.y, self.w, self.h))
+        state.shapes.append(_shapes.Ellipse(state.lineno, x0, y0, x1, y1, x, y, w, h, state.hiddenState['fillColor']))
 
 class _polygon(_Actor):
     @staticmethod
