@@ -69,6 +69,9 @@ class LineTagger:
         end_index = "%s + 8c"%(start_index)
         self.text.tag_add("keyword", start_index, end_index)
 
+    def tag_Comment(self, instruction):
+        self.text.tag_add("comment", "%d.0"%self.lineno, "%d.0 lineend"%self.lineno)
+
 
 class TextModifier:
     def __init__(self, program, text):
@@ -131,6 +134,7 @@ class TextInput(tkinter.Text):
         self.tag_configure("invalidSyntax", background="#FFBBBB")
         self.tag_configure("highlihgt", background="#FFFF99")
         self.tag_configure("number", foreground="blue")
+        self.tag_configure("comment", foreground="grey")
 
         self.textModifier = TextModifier(self.program, self)
         self.tag_bind("number", "<Enter>", self.textModifier.on_enter)

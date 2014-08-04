@@ -5,6 +5,16 @@ class Instruction:
     @property
     def klass(self):
         return self.__class__.__name__
+
+class Comment(Instruction):
+    def __init__(self, text):
+        self.text = text
+
+    def __call__(self):
+        return None
+
+    def get_token_at_pos(self, pos):
+        return None
         
 
 class Call(Instruction):
@@ -69,3 +79,4 @@ class FunctionDef(Instruction):
             if arg.start <= pos <= arg.end:
                 return arg.get_token_at_pos(pos)
         return None
+

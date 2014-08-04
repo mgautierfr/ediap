@@ -151,8 +151,14 @@ def functionstmt():
     special(')')
     return instructions.FunctionDef(name, arguments)
 
+@tri
+def comment():
+    special("#")
+    text = many(p(satisfies, lambda l: l is not EndOfFile))
+    return instructions.Comment(text)
+
 def part():
-    expr = choice(functionstmt, functioncall, assignement, ifstmt, whilestmt)
+    expr = choice(comment, functionstmt, functioncall, assignement, ifstmt, whilestmt)
     eof()
     return expr
 

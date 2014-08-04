@@ -8,7 +8,8 @@ import interpreter
 import gui
 from program import Program, Line
 
-default_source = """function house(x, y, w, h)
+default_source = """#Ceci est une fonction qui dessine une maison
+function house(x, y, w, h)
   ratio = 0.3
   triangle(x,y+h*ratio, x+w,y+h*ratio, x+w/2,y)
   rectangle(x, y+h*ratio, w, h*(1-ratio))
@@ -18,6 +19,7 @@ function test(a, b)
   x = 5
   ellipse(x*a, b+10, 10, 10)
 
+# On attribue 1 à la variable x
 x = 1
 fill(0, 0, 255)
 ellipse(5, 5, 10, 10)

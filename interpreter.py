@@ -109,7 +109,8 @@ class Interpreter:
                 continue
             if line.valid:
                 actor = line.parsed()
-                self.program.actors.append(Instruction(line, actor))
+                if actor:
+                    self.program.actors.append(Instruction(line, actor))
             else:
                 self.valid = False
 
