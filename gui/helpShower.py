@@ -1,6 +1,5 @@
 
 import tkinter
-from libs.painter import actors
 
 class HelpShower(tkinter.Label):
     def __init__(self, parent, program):
@@ -25,7 +24,7 @@ class HelpShower(tkinter.Label):
 
         function_name = parsed.name.v
         try:
-            functionDef = getattr(actors, function_name)
+            functionDef = getattr(self.program.lib, function_name)
         except AttributeError:
             return
 

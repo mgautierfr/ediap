@@ -8,12 +8,12 @@ import gui
 from program import Program, Line
 
 default_source = """#Ceci est une fonction qui dessine une maison
-function house(x, y, w, h)
+define house(x, y, w, h)
   ratio = 0.3
   triangle(x,y+h*ratio, x+w,y+h*ratio, x+w/2,y)
   rectangle(x, y+h*ratio, w, h*(1-ratio))
 
-function test(a, b)
+define test(a, b)
   ellipse(x*a, b, 10, 10)
   x = 5
   ellipse(x*a, b+10, 10, 10)
@@ -25,11 +25,11 @@ ellipse(5, 5, 10, 10)
 rectangle(20, 5+x*2, 15, 5)
 
 fill(255, 255, 0)
-test(5, 20)
+do test(5, 20)
 rectangle(20, 5+x*2, 15, 5)
 
 fill(255, 0, 255)
-house(15, 50, 15, 35)
+do house(15, 50, 15, 35)
 
 fill(0, 255, 0)
 quad(50,10, 50,20, 60,20, 60,10)
@@ -52,8 +52,9 @@ while x < 10
 
 def main():
     root = tkinter.Tk()
+    from libs import painter
 
-    program = Program()
+    program = Program(painter)
     program.set_source(default_source.split('\n'))
 
     #Create the gui widgets

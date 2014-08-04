@@ -1,7 +1,5 @@
 from . import actors
 
-import libs.painter.actors as libActors
-
 class Instruction:
     @property
     def klass(self):
@@ -61,17 +59,29 @@ class FunctionDef(Instruction):
                 return arg.get_token_at_pos(pos)
         return None
 
+class Builtin(Instruction):
+    def __init__(self, name, args):
+        self.name = name
+        self.args = args
+
+    def __call__(self, lib):
+        function = getattr(lib, self.name.v)
+        # this is a builtin call
+        return function(self.level, *self.args)
+
+    def get_token_at_pos(self, pos):
+        for arg in self.args:
+            if arg.start <= pos <= arg.end:
+                return arg.get_token_at_pos(pos)
+        return None
+
 class Call(Instruction):
     def __init__(self, name, args):
         self.name = name
         self.args = args
 
     def __call__(self):
-        function = getattr(libActors, self.name.v, None)
-        if function is not None:
-            return function(self.level, *self.args)
-        else:
-            return actors.functionCall(self.level, self.name, self.args)
+        return actors.functionCall(self.level, self.name, self.args)
 
     def get_token_at_pos(self, pos):
         for arg in self.args:

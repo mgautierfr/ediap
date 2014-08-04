@@ -7,7 +7,7 @@ from picoparse import pos as _pos
 from .tokens import *
 from . import instructions
 
-reserved_words = []
+reserved_words = ['if', 'while', 'do', 'define']
 binary_operator_chars = ['+', '-', '/', '*', '==', '<', '>', '!=', '<=', '>=']
 
 as_string = p(compose, lambda iter_: u''.join(iter_))
@@ -107,7 +107,7 @@ def reserved(name):
 def identifier():
     whitespace()
     start = pos()
-    #not_followed_by(p(choice, *[p(reserved, rw) for rw in reserved_words]))
+    not_followed_by(p(choice, *[p(reserved, rw) for rw in reserved_words]))
     first = identifier_char1()
     commit()
     rest = many(identifier_char)
@@ -117,11 +117,20 @@ def identifier():
 
 @tri
 def functioncall():
+    special('do')
     name = identifier()
     special('(')
     arguments = sep(expr, p(special, ','))
     special(')')
     return instructions.Call(name, arguments)
+
+@tri
+def builtincall():
+    name = identifier()
+    special('(')
+    arguments = sep(expr, p(special, ','))
+    special(')')
+    return instructions.Builtin(name, arguments)
 
 @tri
 def assignement():
@@ -144,7 +153,7 @@ def whilestmt():
 
 @tri
 def functionstmt():
-    special('function')
+    special('define')
     name = identifier()
     special('(')
     arguments = sep(identifier, p(special, ','))
@@ -158,7 +167,7 @@ def comment():
     return instructions.Comment(text)
 
 def part():
-    expr = choice(comment, functionstmt, functioncall, assignement, ifstmt, whilestmt)
+    expr = choice(comment, functionstmt, functioncall, builtincall, assignement, ifstmt, whilestmt)
     eof()
     return expr
 

@@ -1,6 +1,5 @@
 
 import tkinter
-from libs.painter import actors
 
 def int_scale(value, neg):
     return value + (1-2*neg)
@@ -23,6 +22,16 @@ class LineTagger:
         self.tag(node.value)
 
     def tag_Call(self, node):
+        start_index = "%d.%d"%(self.lineno, node.level)
+        end_index = "%s + 2c"%(start_index)
+        self.text.tag_add("keyword", start_index, end_index)
+        for argument in node.args:
+            self.tag(argument)
+
+    def tag_Builtin(self, node):
+        start_index = "%d.%d"%(self.lineno, node.name.start)
+        end_index = "%d.%d"%(self.lineno, node.name.end)
+        self.text.tag_add("builtin", start_index, end_index)
         for argument in node.args:
             self.tag(argument)
 
@@ -88,8 +97,8 @@ class TextModifier:
         self.token = parsed.get_token_at_pos(pos)
         self.x = event.x
         self.modifier = int_scale
-        if parsed.klass == "Call" and hasattr(actors, parsed.name.v):
-            functionDef = getattr(actors, parsed.name.v)
+        if parsed.klass == "Call" and hasattr(self.program.lib, parsed.name.v):
+            functionDef = getattr(self.program.lib, parsed.name.v)
             if self.token in parsed.args:
                 self.modifier = functionDef.arguments[parsed.args.index(self.token)].scale
 
@@ -131,6 +140,7 @@ class TextInput(tkinter.Text):
         font = tkinter.font.Font(font=self['font'])
         font.configure(weight='bold')
         self.tag_configure("keyword", foreground="darkgreen", font=font)
+        self.tag_configure("builtin", foreground="darkgreen")
         self.tag_configure("invalidSyntax", background="#FFBBBB")
         self.tag_configure("highlihgt", background="#FFFF99")
         self.tag_configure("number", foreground="blue")

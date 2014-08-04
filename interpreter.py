@@ -108,7 +108,14 @@ class Interpreter:
             if not line:
                 continue
             if line.valid:
-                actor = line.parsed()
+                if line.parsed.klass == "Builtin":
+                    try:
+                        actor = line.parsed(self.program.lib)
+                    except KeyError:
+                        self.valid = False
+                        continue
+                else:
+                    actor = line.parsed()
                 if actor:
                     self.program.actors.append(Instruction(line, actor))
             else:

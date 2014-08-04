@@ -59,8 +59,9 @@ class ExtendList(list):
         return list.__getitem__(self, index)
 
 class Program(utils.EventSource):
-    def __init__(self):
+    def __init__(self, lib):
         utils.EventSource.__init__(self)
+        self.lib = lib
         self.source        = []
         self.actors        = []
         self.init_steps()

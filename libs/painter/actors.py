@@ -2,6 +2,8 @@ from . import shapes as _shapes
 from language import nodes as _nodes
 from language.actors import Actor
 
+__all__ = ['rectangle', 'ellipse', 'quad', 'triangle' , 'fill', 'view']
+
 class _ColorNode(_nodes.Node):
     def __init__(self, r, v, b):
         _nodes.Node.__init__(self)
