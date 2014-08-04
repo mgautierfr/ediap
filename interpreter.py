@@ -1,6 +1,6 @@
 
 from program import Instruction, Step
-import nodes
+from language import nodes
 
 class InvalidIndent(Exception):
     pass
@@ -139,12 +139,12 @@ class Interpreter:
                     self.program.steps.append(Step(instruction, state))
                 else:
                     pc = self.pass_level(self.program.actors[pc].level, pc)
-            elif instruction.klass == "_functionDef":
+            elif instruction.klass == "functionDef":
                 state = self.new_state(instruction.lineno, state)
                 instruction.actor(state)
                 state.functions[instruction.actor.name.v].pc = pc
                 pc = self.pass_level(self.program.actors[pc].level, pc)
-            elif instruction.klass == "_functionCall":
+            elif instruction.klass == "functionCall":
                 state = self.new_state(instruction.lineno, state)
                 newState = state.child()
                 instruction.actor(newState)

@@ -2,7 +2,6 @@
 
 
 import tkinter, tkinter.font
-import functions
 from pprint import pprint
 import interpreter
 import gui

@@ -1,6 +1,6 @@
 
 import tkinter
-import functions
+from libs.painter import actors
 
 def int_scale(value, neg):
     return value + (1-2*neg)
@@ -88,8 +88,8 @@ class TextModifier:
         self.token = parsed.get_token_at_pos(pos)
         self.x = event.x
         self.modifier = int_scale
-        if parsed.klass == "Call" and hasattr(functions, parsed.name.v):
-            functionDef = getattr(functions, parsed.name.v)
+        if parsed.klass == "Call" and hasattr(actors, parsed.name.v):
+            functionDef = getattr(actors, parsed.name.v)
             if self.token in parsed.args:
                 self.modifier = functionDef.arguments[parsed.args.index(self.token)].scale
 

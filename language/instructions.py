@@ -1,5 +1,6 @@
+from . import actors
 
-import functions
+import libs.painter.actors as libActors
 
 class Instruction:
     @property
@@ -15,26 +16,6 @@ class Comment(Instruction):
 
     def get_token_at_pos(self, pos):
         return None
-        
-
-class Call(Instruction):
-    def __init__(self, name, args):
-        self.name = name
-        self.args = args
-
-    def __call__(self):
-        function = getattr(functions, self.name.v, None)
-        if function is not None:
-            return function(self.level, *self.args)
-        else:
-            return functions._functionCall(self.level, self.name, self.args)
-
-    def get_token_at_pos(self, pos):
-        for arg in self.args:
-            if arg.start <= pos <= arg.end:
-                return arg.get_token_at_pos(pos)
-        return None
-        
 
 class Assignement(Instruction):
     def __init__(self, name, value):
@@ -42,7 +23,7 @@ class Assignement(Instruction):
         self.value = value
 
     def __call__(self):
-        return functions._setter(self.level, self.name, self.value)
+        return actors.setter(self.level, self.name, self.value)
 
     def get_token_at_pos(self, pos):
         if self.value.start <= pos <= self.value.end:
@@ -54,7 +35,7 @@ class If(Instruction):
         self.test = test
 
     def __call__(self):
-        return functions._if(self.level, self.test)
+        return actors._if(self.level, self.test)
 
     def get_token_at_pos(self, pos):
         if self.test.start <= pos <= self.test.end:
@@ -63,7 +44,7 @@ class If(Instruction):
 
 class While(If):
     def __call__(self):
-        return functions._while(self.level, self.test)
+        return actors._while(self.level, self.test)
 
 
 class FunctionDef(Instruction):
@@ -72,7 +53,25 @@ class FunctionDef(Instruction):
         self.args = args
 
     def __call__(self):
-        return functions._functionDef(self.level, self.name, self.args)
+        return actors.functionDef(self.level, self.name, self.args)
+
+    def get_token_at_pos(self, pos):
+        for arg in self.args:
+            if arg.start <= pos <= arg.end:
+                return arg.get_token_at_pos(pos)
+        return None
+
+class Call(Instruction):
+    def __init__(self, name, args):
+        self.name = name
+        self.args = args
+
+    def __call__(self):
+        function = getattr(libActors, self.name.v, None)
+        if function is not None:
+            return function(self.level, *self.args)
+        else:
+            return actors.functionCall(self.level, self.name, self.args)
 
     def get_token_at_pos(self, pos):
         for arg in self.args:

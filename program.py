@@ -1,6 +1,6 @@
 
 import utils
-import grammar
+from language import grammar
 from picoparse import NoMatch
 
 class Line:
@@ -106,3 +106,4 @@ class Program(utils.EventSource):
     def set_current(self, current):
         self.current = current
         self.event("current_changed")()
+

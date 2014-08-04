@@ -1,5 +1,6 @@
-import shapes as _shapes
-import nodes as _nodes
+from . import shapes as _shapes
+from language import nodes as _nodes
+from language.actors import Actor
 
 class _ColorNode(_nodes.Node):
     def __init__(self, r, v, b):
@@ -33,20 +34,7 @@ class _IntArgument:
             value = min(self.stop, value)
         return value
 
-class _FunctionDefinition:
-    def __init__(self, name, args):
-        self.name = name,
-        self.args = args
-
-class _Actor:
-    def __init__(self, level):
-        self.level = level
-
-    @property
-    def klass(self):
-        return self.__class__.__name__
-
-class rectangle(_Actor):
+class rectangle(Actor):
     help = "Draw a rectangle"
     arguments = [_IntArgument("x position of the top left corner"),
                  _IntArgument("y position of the top left corner"),
@@ -55,7 +43,7 @@ class rectangle(_Actor):
                 ]
     
     def __init__(self, level, x, y, w, h):
-        _Actor.__init__(self, level)
+        Actor.__init__(self, level)
         self.x, self.y, self.w, self.h = x, y, w, h
 
     def get_bounding_rect(self, state):
@@ -90,7 +78,7 @@ class ellipse(rectangle):
         x, y, w, h = (t.get_node(state.namespace) for t in (self.x, self.y, self.w, self.h))
         state.shapes.append(_shapes.Ellipse(state.lineno, x0, y0, x1, y1, x, y, w, h, state.hiddenState['fillColor']))
 
-class _polygon(_Actor):
+class _polygon(Actor):
     @staticmethod
     def update_coord(point, state):
         x, y = point
@@ -150,7 +138,7 @@ class triangle(_polygon):
         p2 = self.update_coord(self.p2, state)
         state.shapes.append(_shapes.Polygon(state.lineno, state.hiddenState['fillColor'], (p0+p1+p2)))
 
-class fill(_Actor):
+class fill(Actor):
     help = "Change the color of the fill parameter"
     arguments = [_IntArgument("red", (0, 255), 10),
                  _IntArgument("green", (0, 255), 10),
@@ -158,7 +146,7 @@ class fill(_Actor):
                 ]
 
     def __init__(self, level, r, v, b):
-        _Actor.__init__(self, level)
+        Actor.__init__(self, level)
         self.r, self.v, self.b = r, v, b
 
     def __call__(self, state):
@@ -166,7 +154,7 @@ class fill(_Actor):
         state.hiddenState['fillColor'] = _ColorNode(r, v, b)
 
 
-class view(_Actor):
+class view(Actor):
     help = "Change the view of the canvas"
     arguments = [_IntArgument("left of the view"),
                  _IntArgument("top of the view"),
@@ -185,44 +173,5 @@ class view(_Actor):
         state.hiddenState['view_height'] = self.height.get_node(state.namespace)
 
 
-class _setter(_Actor):
-    def __init__(self, level, name, value):
-        _Actor.__init__(self, level)
-        self.name = name
-        self.value = value
 
-    def __call__(self, state):
-        state.namespace[self.name.v] = self.value.get_node(state.namespace)
-
-class _if(_Actor):
-    def __init__(self, level, test):
-        _Actor.__init__(self, level)
-        self.test = test
-
-    def __call__(self, state):
-        test_node = self.test.get_node(state.namespace)
-        return test_node()
-
-class _while(_if):
-    pass
-
-class _functionDef(_Actor):
-    def __init__(self, level, name, args):
-        _Actor.__init__(self, level)
-        self.name = name
-        self.args = args
-
-    def __call__(self, state):
-        state.functions[self.name.v] = _FunctionDefinition(self.name.v, [arg.v for arg in self.args])
-
-class _functionCall(_Actor):
-    def __init__(self, level, name, args):
-        _Actor.__init__(self, level)
-        self.name = name
-        self.args = args
-
-    def __call__(self, state):
-        functionDef = state.functions[self.name.v]
-        for argName, arg in zip(functionDef.args, self.args):
-            state.namespace.dict[argName] = arg.get_node(state.namespace)
 

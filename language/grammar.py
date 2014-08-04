@@ -4,8 +4,8 @@ from picoparse.text import run_text_parser, newline
 from picoparse import pos as _pos
 
 
-from tokens import *
-import instructions
+from .tokens import *
+from . import instructions
 
 reserved_words = []
 binary_operator_chars = ['+', '-', '/', '*', '==', '<', '>', '!=', '<=', '>=']

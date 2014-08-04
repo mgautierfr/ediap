@@ -1,4 +1,4 @@
-import nodes
+from . import nodes
 
 operators = ['<', '<=', '>', '>=', '!=', '==', '-','+','*','/']
 
@@ -75,3 +75,4 @@ class BinaryOp(Token):
         if self.y.start <= pos <= self.y.end:
             return self.y.get_token_at_pos(pos)
         return None
+
