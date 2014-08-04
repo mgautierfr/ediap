@@ -7,7 +7,8 @@ from picoparse import pos as _pos
 from .tokens import *
 from . import instructions
 
-reserved_words = ['if', 'while', 'do', 'define']
+reserved_words = ['if', 'while', 'do', 'define', 'use']
+variable_types = ['var', 'array']
 binary_operator_chars = ['+', '-', '/', '*', '==', '<', '>', '!=', '<=', '>=']
 
 as_string = p(compose, lambda iter_: u''.join(iter_))
@@ -133,6 +134,15 @@ def builtincall():
     return instructions.Builtin(name, arguments)
 
 @tri
+def var_declaration():
+    special('use')
+    whitespace1()
+    type_ = u''.join(choice(*[p(string, t) for t in variable_types]))
+    whitespace1()
+    name = identifier()
+    return instructions.Use(type_ , name)
+
+@tri
 def assignement():
     name = identifier()
     special('=')
@@ -151,12 +161,20 @@ def whilestmt():
     test = expr()
     return instructions.While(test)
 
+
+def argument_def():
+    whitespace()
+    type_ = u''.join(choice(*[p(string, t) for t in variable_types]))
+    whitespace1()
+    name = identifier()
+    return type_, name
+
 @tri
 def functionstmt():
     special('define')
     name = identifier()
     special('(')
-    arguments = sep(identifier, p(special, ','))
+    arguments = sep(argument_def, p(special, ','))
     special(')')
     return instructions.FunctionDef(name, arguments)
 
@@ -167,7 +185,7 @@ def comment():
     return instructions.Comment(text)
 
 def part():
-    expr = choice(comment, functionstmt, functioncall, builtincall, assignement, ifstmt, whilestmt)
+    expr = choice(comment, var_declaration, functionstmt, functioncall, builtincall, assignement, ifstmt, whilestmt)
     eof()
     return expr
 

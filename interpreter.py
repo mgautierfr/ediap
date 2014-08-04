@@ -45,7 +45,7 @@ class NamespaceDict:
         clone = NamespaceDict()
         if self.parent:
             clone.parent = self.parent.clone()
-        clone.dict = dict(self.dict)
+        clone.dict.update({k:v.clone() for k,v in self.dict.items()})
         return clone
 
 class State:

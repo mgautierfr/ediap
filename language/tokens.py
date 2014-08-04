@@ -42,7 +42,7 @@ class Paren(Value):
 
 class Identifier(Value):
     def get_node(self, namespace):
-        return namespace[self.v]
+        return namespace[self.v].get()
 
 class BinaryOp(Token):
     def __init__(self, name, x, y, start, end):

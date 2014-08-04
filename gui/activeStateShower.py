@@ -94,6 +94,10 @@ class ActiveStateShower(tkinter.Frame):
         for child in self.variables.get_children():
             self.variables.delete(child)
         for key in sorted(state.namespace.keys()):
-            value = state.namespace[key]()
+            value = state.namespace[key].get()
+            if value is None:
+                value = ""
+            else:
+                value = value()
             self.variables.insert("", "end", key, text=key, value=value, tags=(key,))
 

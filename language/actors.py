@@ -1,7 +1,4 @@
-class _FunctionDefinition:
-    def __init__(self, name, args):
-        self.name = name,
-        self.args = args
+from . import objects
 
 class Actor:
     def __init__(self, level):
@@ -11,6 +8,17 @@ class Actor:
     def klass(self):
         return self.__class__.__name__
 
+class var_creator(Actor):
+    def __init__(self, level, type_, name):
+        Actor.__init__(self, level)
+        self.type_ = type_
+        self.name = name
+
+    def __call__(self, state):
+        if self.type_ == "var":
+            var = objects.Variable()
+        state.namespace[self.name] = var
+
 class setter(Actor):
     def __init__(self, level, name, value):
         Actor.__init__(self, level)
@@ -18,7 +26,7 @@ class setter(Actor):
         self.value = value
 
     def __call__(self, state):
-        state.namespace[self.name.v] = self.value.get_node(state.namespace)
+        state.namespace[self.name.v].set(self.value.get_node(state.namespace))
 
 class _if(Actor):
     def __init__(self, level, test):
@@ -39,7 +47,7 @@ class functionDef(Actor):
         self.args = args
 
     def __call__(self, state):
-        state.functions[self.name.v] = _FunctionDefinition(self.name.v, [arg.v for arg in self.args])
+        state.functions[self.name.v] = objects.FunctionDefinition(self.name.v, [(t, a.v) for t,a in self.args])
 
 class functionCall(Actor):
     def __init__(self, level, name, args):
@@ -49,5 +57,9 @@ class functionCall(Actor):
 
     def __call__(self, state):
         functionDef = state.functions[self.name.v]
-        for argName, arg in zip(functionDef.args, self.args):
-            state.namespace.dict[argName] = arg.get_node(state.namespace)
+        for argTypeName, arg in zip(functionDef.args, self.args):
+            argType, argName = argTypeName
+            if argType == "var":
+                var = objects.Variable()
+            state.namespace.dict[argName] = var
+            var.set(arg.get_node(state.namespace))

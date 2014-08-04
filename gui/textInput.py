@@ -75,11 +75,16 @@ class LineTagger:
 
     def tag_FunctionDef(self, instruction):
         start_index = "%d.%d"%(self.lineno, instruction.level)
-        end_index = "%s + 8c"%(start_index)
+        end_index = "%s + 6c"%(start_index)
         self.text.tag_add("keyword", start_index, end_index)
 
     def tag_Comment(self, instruction):
         self.text.tag_add("comment", "%d.0"%self.lineno, "%d.0 lineend"%self.lineno)
+
+    def tag_Use(self, instruction):
+        start_index = "%d.%d"%(self.lineno, instruction.level)
+        end_index = "%s + 3c"%(start_index)
+        self.text.tag_add("keyword", start_index, end_index)
 
 
 class TextModifier:

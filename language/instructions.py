@@ -5,6 +5,10 @@ class Instruction:
     def klass(self):
         return self.__class__.__name__
 
+    def get_token_at_pos(self, pos):
+        return None
+
+
 class Comment(Instruction):
     def __init__(self, text):
         self.text = text
@@ -12,8 +16,14 @@ class Comment(Instruction):
     def __call__(self):
         return None
 
-    def get_token_at_pos(self, pos):
-        return None
+class Use(Instruction):
+    def __init__(self, type_, name):
+        self.type_ = type_
+        self.name = name
+
+    def __call__(self):
+        return actors.var_creator(self.level, self.type_, self.name.v)
+
 
 class Assignement(Instruction):
     def __init__(self, name, value):
@@ -52,12 +62,6 @@ class FunctionDef(Instruction):
 
     def __call__(self):
         return actors.functionDef(self.level, self.name, self.args)
-
-    def get_token_at_pos(self, pos):
-        for arg in self.args:
-            if arg.start <= pos <= arg.end:
-                return arg.get_token_at_pos(pos)
-        return None
 
 class Builtin(Instruction):
     def __init__(self, name, args):

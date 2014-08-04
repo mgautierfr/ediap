@@ -8,15 +8,19 @@ import gui
 from program import Program, Line
 
 default_source = """#Ceci est une fonction qui dessine une maison
-define house(x, y, w, h)
+define house(var x, var y, var w, var h)
+  use var ratio
   ratio = 0.3
   triangle(x,y+h*ratio, x+w,y+h*ratio, x+w/2,y)
   rectangle(x, y+h*ratio, w, h*(1-ratio))
 
-define test(a, b)
+define test(var a, var b)
   ellipse(x*a, b, 10, 10)
   x = 5
   ellipse(x*a, b+10, 10, 10)
+
+use var x
+use var y
 
 # On attribue 1 à la variable x
 x = 1
@@ -43,8 +47,8 @@ while x < 3
 x=0
 while x < 10
   y = 0
-  while y < 10
-    fill(25*x, 25*y, 0)
+  while y < 5
+    fill(25*x, 50*y, 0)
     rectangle(50+5*x, 50+5*y, 3, 3)
     y = y + 1
   x = x + 1"""
