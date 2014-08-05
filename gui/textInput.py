@@ -113,7 +113,7 @@ class TextModifier:
         self.token = parsed.get_token_at_pos(pos)
         self.x = event.x
         self.modifier = int_scale
-        if parsed.klass == "Call" and hasattr(self.program.lib, parsed.name.v):
+        if parsed.klass == "Builtin" and hasattr(self.program.lib, parsed.name.v):
             functionDef = getattr(self.program.lib, parsed.name.v)
             if self.token in parsed.args:
                 self.modifier = functionDef.arguments[parsed.args.index(self.token)].scale

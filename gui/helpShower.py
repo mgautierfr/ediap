@@ -17,7 +17,7 @@ class HelpShower(tkinter.Label):
             return
 
         self.helpv.set("")
-        if parsed is None or parsed.klass != "Call":
+        if parsed is None or parsed.klass != "Builtin":
             return
 
         function_name = parsed.name.v
