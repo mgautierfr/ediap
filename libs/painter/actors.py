@@ -68,7 +68,8 @@ class rectangle(Actor):
         state.shapes.append(_shapes.Rectangle(state.lineno, x0, y0, x1, y1, x, y, w, h, state.hiddenState['fillColor']))
 
     def get_help(self, state):
-        return "Draw a rectangle"
+        namespace = state.namespace
+        return "Draw a rectangle at %sx%s with size %sx%s"%(self.x.get_node(namespace)(),self.y.get_node(namespace)(), self.w.get_node(namespace)(), self.h.get_node(namespace)())
 
 class ellipse(rectangle):
     help = "Draw a ellipse"
@@ -84,7 +85,8 @@ class ellipse(rectangle):
         state.shapes.append(_shapes.Ellipse(state.lineno, x0, y0, x1, y1, x, y, w, h, state.hiddenState['fillColor']))
 
     def get_help(self, state):
-        return "Draw a ellipse"
+        namespace = state.namespace
+        return "Draw a ellipse at %sx%s with size %sx%s"%(self.x.get_node(namespace)(),self.y.get_node(namespace)(), self.w.get_node(namespace)(), self.h.get_node(namespace)())
 
 class _polygon(Actor):
     @staticmethod
@@ -125,7 +127,11 @@ class quad(_polygon):
         state.shapes.append(_shapes.Polygon(state.lineno, state.hiddenState['fillColor'], (p0+p1+p2+p3)))
 
     def get_help(self, state):
-        return "Draw a quad"
+        namespace = state.namespace
+        return "Draw a quad with points %sx%s %sx%s %sx%s %sx%s"%(self.p0[0].get_node(namespace)(), self.p0[1].get_node(namespace)(),
+                                                                  self.p1[0].get_node(namespace)(), self.p1[1].get_node(namespace)(),
+                                                                  self.p2[0].get_node(namespace)(), self.p2[1].get_node(namespace)(),
+                                                                  self.p3[0].get_node(namespace)(), self.p3[1].get_node(namespace)())
 
 class triangle(_polygon):
     help = "Draw a quad"
@@ -150,7 +156,10 @@ class triangle(_polygon):
         state.shapes.append(_shapes.Polygon(state.lineno, state.hiddenState['fillColor'], (p0+p1+p2)))
 
     def get_help(self, state):
-        return "Draw a triangle"
+        namespace = state.namespace
+        return "Draw a triangle with points %sx%s %sx%s %sx%s"%(self.p0[0].get_node(namespace)(), self.p0[1].get_node(namespace)(),
+                                                                self.p1[0].get_node(namespace)(), self.p1[1].get_node(namespace)(),
+                                                                self.p2[0].get_node(namespace)(), self.p2[1].get_node(namespace)())
 
 class fill(Actor):
     help = "Change the color of the fill parameter"
@@ -168,7 +177,9 @@ class fill(Actor):
         state.hiddenState['fillColor'] = _ColorNode(r, v, b)
 
     def get_help(self, state):
-        return "Change current color"
+        r, v, b = (token.get_node(state.namespace) for token in (self.r, self.v, self.b))
+        r, v, b = (min(max(c(), 0), 255) for c in (r,v,b))
+        return "Change current color to #%s%s%s"%(r, v, b)
 
 
 class view(Actor):
