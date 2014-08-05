@@ -11,9 +11,6 @@ class StepChanger(tkinter.Scale):
         self.program.connect("activeStep_changed", self.on_activeStep_changed)
         self.activeStep.trace("w", self.showStep)
 
-    def place(self):
-        self.pack(side="top", fill="x", expand=1)
-
     def on_steps_changed(self):
         self['to'] = len(self.program.steps)-1
 

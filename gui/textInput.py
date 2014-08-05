@@ -205,9 +205,6 @@ class TextInput(tkinter.Text):
         self.tag_remove("highlihgt", "1.0", "end")
         self.tag_add("highlihgt", "%d.0"%self.program.steps[step].lineno, "%d.0 +1l"%self.program.steps[step].lineno)
 
-    def place(self):
-        self.pack(side="left", fill="y", expand=0)
-
     def clean_tags(self):
         [self.tag_remove(n, "1.0", "end") for n in self.tag_names()]
 

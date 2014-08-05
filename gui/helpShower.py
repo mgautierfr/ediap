@@ -9,9 +9,6 @@ class HelpShower(tkinter.Label):
         program.connect("current_changed", self.on_current_changed)
         program.connect("activeStep_changed", self.on_activeStep_changed)
 
-    def place(self):
-        self.pack(side="bottom", anchor="s")
-
     def on_current_changed(self):
         line, pos = self.program.current
         try:

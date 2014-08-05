@@ -4,7 +4,8 @@ import tkinter.ttk
 
 class ActiveStateShower(tkinter.Frame):
     def __init__(self, parent, program):
-        tkinter.Frame.__init__(self, parent)
+        tkinter.Frame.__init__(self, parent, width=100)
+        self.propagate(True)
         self.canvas = tkinter.Canvas(self, bg="white")
         self.canvas.pack(side="top")
         self.canvasState = tkinter.ttk.Treeview(self, columns=('value',))
@@ -74,9 +75,6 @@ class ActiveStateShower(tkinter.Frame):
             self.canvas.delete('all')
         self.update_hiddenstate(state)
         self.update_namespace(state)
-
-    def place(self):
-        self.pack(side="right")
 
     def update(self, *args):
         state = self.program.steps[self.program.displayedStep].state

@@ -41,9 +41,6 @@ class StepOutput(tkinter.Frame):
         self.program.connect("activeStep_changed", self.on_activeStep_changed)
         self.changing = False
 
-    def place(self):
-        self.pack(fill="both", expand=1, side="right")
-
     def on_activeStep_changed(self, step):
         if self.oldStep is not None:
             self.steps.itemconfig("step_%d"%self.oldStep, fill="black")
