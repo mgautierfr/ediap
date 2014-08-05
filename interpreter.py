@@ -80,7 +80,6 @@ class Interpreter:
         self.program = program
         self.program.connect("source_changed", self.on_source_changed)
         self.state = None
-        self.watchdog = 1000
 
     def on_source_changed(self):
         self.parse_text()
@@ -170,7 +169,9 @@ class Interpreter:
             except KeyError as e:
                 help.add(instruction.lineno, "%s is not a declared variable."%e.args)
                 self.program.steps.append(Step(instruction, state, help))
-            if len(self.program.steps) >= self.watchdog:
+                raise
+            if self.program.to_many_step():
+                help.add(instruction.lineno, "To many instruction at line %d"%instruction.lineno)
                 raise ToManyInstruction()
 
         return pc, state

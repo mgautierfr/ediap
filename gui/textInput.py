@@ -183,6 +183,8 @@ class TextInput(tkinter.Text):
         self.program.set_current(current)
 
     def on_textModified(self, event):
+        if not self.edit_modified():
+            return
         self.edit_modified(False)
         if not self.textModifier.changing:
             lines = self.get("1.0", "end").split("\n")

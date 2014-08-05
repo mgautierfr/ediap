@@ -44,28 +44,34 @@ class ActiveStateShower(tkinter.Frame):
 
     def on_currentChanged(self):
         state = self.program.steps[self.program.displayedStep].state
-        self.canvas.delete('helpers')
-        token = self.get_current_token(state.namespace)
-        for shape in state.shapes:
-            if token in shape.depend():
+        if not self.program.to_many_step():
+            self.canvas.delete('helpers')
+            token = self.get_current_token(state.namespace)
+            for shape in state.shapes:
+                if token in shape.depend():
+                    try:
+                        self.canvas.tkraise(shape.shapeid, 'helpers')
+                    except tkinter.TclError:
+                        pass
+                    shape.draw_helper(token, self.canvas)
+        else:
+            self.canvas.delete('all')
+
+    def on_token_changed(self):
+        state = self.program.steps[self.program.displayedStep].state
+        if not self.program.to_many_step():
+            self.canvas.delete('helpers')
+            token = self.get_current_token(state.namespace)
+            for shape in state.shapes:
+                shape.update(self.canvas)
                 try:
                     self.canvas.tkraise(shape.shapeid, 'helpers')
                 except tkinter.TclError:
                     pass
-                shape.draw_helper(token, self.canvas)
-
-    def on_token_changed(self):
-        state = self.program.steps[self.program.displayedStep].state
-        self.canvas.delete('helpers')
-        token = self.get_current_token(state.namespace)
-        for shape in state.shapes:
-            shape.update(self.canvas)
-            try:
-                self.canvas.tkraise(shape.shapeid, 'helpers')
-            except tkinter.TclError:
-                pass
-            if token in shape.depend():
-                shape.draw_helper(token, self.canvas)
+                if token in shape.depend():
+                    shape.draw_helper(token, self.canvas)
+        else:
+            self.canvas.delete('all')
         self.update_hiddenstate(state)
         self.update_namespace(state)
 
@@ -76,11 +82,12 @@ class ActiveStateShower(tkinter.Frame):
         state = self.program.steps[self.program.displayedStep].state
         self.idle_handle = None
         self.canvas.delete('all')
-        token = self.get_current_token(state.namespace)
-        for shape in state.shapes:
-            shape.draw(self.canvas)
-            if token in shape.depend():
-                shape.draw_helper(token, self.canvas)
+        if not self.program.to_many_step():
+            token = self.get_current_token(state.namespace)
+            for shape in state.shapes:
+                shape.draw(self.canvas)
+                if token in shape.depend():
+                    shape.draw_helper(token, self.canvas)
         self.update_hiddenstate(state)
         self.update_namespace(state)
 

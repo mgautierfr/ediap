@@ -75,6 +75,10 @@ class Program(utils.EventSource):
         self.init_steps()
         self.helpers       = (None, None)
         self.current       = (None, None)
+        self.watchdog      = 1000
+
+    def to_many_step(self):
+        return len(self.steps) >= self.watchdog
 
     def init_steps(self):
         self.steps = ExtendList()
