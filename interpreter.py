@@ -203,13 +203,16 @@ class Interpreter:
         return pc, state
     
     def run_prog(self):
+        previous_activeStep = self.program.displayedStep
+        if previous_activeStep is None:
+            previous_activeStep = self.program.watchdog
         self.program.init_steps()
         try:
             _, state = self.run_level(None, 0, 0)
         except ToManyInstruction:
             print("to many instruction")
         except:
-            pass
+            raise
         self.program.event("steps_changed")()
-        self.program.displayedStep = len(self.program.steps)-1
+        self.program.displayedStep =  min(previous_activeStep, len(self.program.steps)-1)
 
