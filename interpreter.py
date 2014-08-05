@@ -128,7 +128,7 @@ class Interpreter:
     def set_help_run_level(self, level, pc, step):
         text = "Do this..."
         while pc < len(self.program.actors) and self.program.actors[pc].level >= level:
-            step.add_help(self.program.actors[pc].lineno, text)
+            step.add_help(self.program.actors[pc].lineno, [('text', text)])
             text = "... and this"
             pc += 1
 
@@ -146,7 +146,7 @@ class Interpreter:
                     step = Step(instruction, state)
                     self.program.steps.append(step)
                     while result:
-                        step.add_help(instruction.lineno, "cause %s is true..."%instruction.actor.get_help_text(state))
+                        step.add_help(instruction.lineno, [('text', "cause %s is true..."%instruction.actor.get_help_text(state))])
                         self.set_help_run_level(self.program.actors[pc].level, pc, step)
                         pc_, state = self.run_level(state, self.program.actors[pc].level, pc)
                         if instruction.klass == "_if":
@@ -156,32 +156,35 @@ class Interpreter:
                         step = Step(instruction, state)
                         self.program.steps.append(step)
                     else:
-                        step.add_help(instruction.lineno, "cause %s is false..."%instruction.actor.get_help_text(state))
+                        step.add_help(instruction.lineno, [('text', "cause %s is false..."%instruction.actor.get_help_text(state))])
                         pc = self.pass_level(self.program.actors[pc].level, pc)
-                        step.add_help(self.program.actors[pc].lineno, "... go here")
+                        try:
+                            step.add_help(self.program.actors[pc].lineno, [('text', "... go here")])
+                        except IndexError:
+                            pass
                 elif instruction.klass == "functionDef":
                     state = self.new_state(instruction.lineno, state)
                     instruction.actor(state)
                     state.functions[instruction.actor.name.v].pc = pc
                     step = Step(instruction, state)
                     self.program.steps.append(step)
-                    step.add_help(instruction.lineno, "create the function %s"%instruction.actor.name.v)
+                    step.add_help(instruction.lineno, [('text', "create the function %s"%instruction.actor.name.v)])
                     pc = self.pass_level(self.program.actors[pc].level, pc)
                 elif instruction.klass == "functionCall":
                     state = self.new_state(instruction.lineno, state)
                     step = Step(instruction, state)
-                    step.add_help(instruction.lineno, "call the function %s..."%instruction.actor.name.v)
+                    step.add_help(instruction.lineno, [('text', "call the function %s..."%instruction.actor.name.v)])
                     self.program.steps.append(step)
                     newState = state.child()
                     instruction.actor(newState)
                     pc_ = newState.functions[instruction.actor.name.v].pc
-                    step.add_help(self.program.actors[pc_].lineno, "... so go here")
+                    step.add_help(self.program.actors[pc_].lineno, [('text', "... so go here")])
                     _, state_ = self.run_level(newState, self.program.actors[pc_].level, pc_)
                     state.hiddenState = state_.hiddenState
                     state.shapes = state_.shapes
                     state.namespace = state_.namespace.parent
                     step = Step(instruction, state)
-                    step.add_help(instruction.lineno, "returning from function %s"%instruction.actor.name.v)
+                    step.add_help(instruction.lineno, [('text', "returning from function %s"%instruction.actor.name.v)])
                     self.program.steps.append(step)
                 else:
                     state = self.new_state(instruction.lineno, state)
@@ -193,11 +196,11 @@ class Interpreter:
                 if not hasattr(e, "handled"):
                     e.handled = True
                     step = Step(instruction, state)
-                    step.add_help(instruction.lineno, "%s is not a declared variable."%e.args)
+                    step.add_help(instruction.lineno, [('text', "%s is not a declared variable."%e.args)])
                     self.program.steps.append(step)
                 raise
             if self.program.to_many_step():
-                help.add(instruction.lineno, "To many instruction at line %d"%instruction.lineno)
+                step.add_help(instruction.lineno, [('text', "To many instruction at line %d"%instruction.lineno)])
                 raise ToManyInstruction()
 
         return pc, state

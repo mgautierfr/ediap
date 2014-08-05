@@ -69,7 +69,11 @@ class rectangle(Actor):
 
     def get_help(self, state):
         namespace = state.namespace
-        return "Draw a rectangle at %sx%s with size %sx%s"%(self.x.get_node(namespace)(),self.y.get_node(namespace)(), self.w.get_node(namespace)(), self.h.get_node(namespace)())
+        return [('text' , "Draw a "),
+                ('shape', 'rectangle'),
+                ('text' , " at %sx%s"%(self.x.get_node(namespace)(),self.y.get_node(namespace)())),
+                ('text' , " with size %sx%s"%(self.w.get_node(namespace)(), self.h.get_node(namespace)()))
+               ]
 
 class ellipse(rectangle):
     help = "Draw a ellipse"
@@ -86,7 +90,11 @@ class ellipse(rectangle):
 
     def get_help(self, state):
         namespace = state.namespace
-        return "Draw a ellipse at %sx%s with size %sx%s"%(self.x.get_node(namespace)(),self.y.get_node(namespace)(), self.w.get_node(namespace)(), self.h.get_node(namespace)())
+        return [('text' , "Draw a "),
+                ('shape', 'ellipse'),
+                ('text' , " at %sx%s"%(self.x.get_node(namespace)(),self.y.get_node(namespace)())),
+                ('text' , " with size %sx%s"%(self.w.get_node(namespace)(), self.h.get_node(namespace)()))
+               ]
 
 class _polygon(Actor):
     @staticmethod
@@ -128,10 +136,14 @@ class quad(_polygon):
 
     def get_help(self, state):
         namespace = state.namespace
-        return "Draw a quad with points %sx%s %sx%s %sx%s %sx%s"%(self.p0[0].get_node(namespace)(), self.p0[1].get_node(namespace)(),
-                                                                  self.p1[0].get_node(namespace)(), self.p1[1].get_node(namespace)(),
-                                                                  self.p2[0].get_node(namespace)(), self.p2[1].get_node(namespace)(),
-                                                                  self.p3[0].get_node(namespace)(), self.p3[1].get_node(namespace)())
+        return [('text', "Draw a "),
+                ('shape', 'quad'),
+                ('text', " with points "),
+                ('text', "%sx%s "%(self.p0[0].get_node(namespace)(), self.p0[1].get_node(namespace)())),
+                ('text', "%sx%s "%(self.p1[0].get_node(namespace)(), self.p1[1].get_node(namespace)())),
+                ('text', "%sx%s "%(self.p2[0].get_node(namespace)(), self.p2[1].get_node(namespace)())),
+                ('text', "%sx%s "%(self.p3[0].get_node(namespace)(), self.p3[1].get_node(namespace)()))
+               ]
 
 class triangle(_polygon):
     help = "Draw a quad"
@@ -157,9 +169,13 @@ class triangle(_polygon):
 
     def get_help(self, state):
         namespace = state.namespace
-        return "Draw a triangle with points %sx%s %sx%s %sx%s"%(self.p0[0].get_node(namespace)(), self.p0[1].get_node(namespace)(),
-                                                                self.p1[0].get_node(namespace)(), self.p1[1].get_node(namespace)(),
-                                                                self.p2[0].get_node(namespace)(), self.p2[1].get_node(namespace)())
+        return [ ('text', "Draw a "),
+                 ('shape', 'triangle'),
+                 ('text', " with points "),
+                 ('text', "%sx%s "%(self.p0[0].get_node(namespace)(), self.p0[1].get_node(namespace)())),
+                 ('text', "%sx%s "%(self.p1[0].get_node(namespace)(), self.p1[1].get_node(namespace)())),
+                 ('text', "%sx%s "%(self.p2[0].get_node(namespace)(), self.p2[1].get_node(namespace)())),
+               ]
 
 class fill(Actor):
     help = "Change the color of the fill parameter"
@@ -179,7 +195,9 @@ class fill(Actor):
     def get_help(self, state):
         r, v, b = (token.get_node(state.namespace) for token in (self.r, self.v, self.b))
         r, v, b = (min(max(c(), 0), 255) for c in (r,v,b))
-        return "Change current color to #%s%s%s"%(r, v, b)
+        return [('text', "Change current color to "),
+                ('color', "#%02x%02x%02x"%(r, v, b))
+               ]
 
 
 class view(Actor):
@@ -201,4 +219,4 @@ class view(Actor):
         state.hiddenState['view_height'] = self.height.get_node(state.namespace)
 
     def get_help(self, state):
-        return "Change the current view"
+        return [('text', "Change the current view")]

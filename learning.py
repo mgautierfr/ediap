@@ -22,7 +22,7 @@ define test(var a, var b)
 use var x
 use var y
 
-# On attribue 1 à la variable x
+# On attribue 1 la variable x
 x = 1
 fill(0, 0, 255)
 ellipse(5, 5, 10, 10)

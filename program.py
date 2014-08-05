@@ -53,8 +53,8 @@ class Step:
     def lineno(self):
         return self.instruction.lineno
 
-    def add_help(self, lineno, text):
-        self.help[lineno] = text
+    def add_help(self, lineno, content):
+        self.help[lineno] = content
 
 class ExtendList(list):
     def __getitem__(self, index):

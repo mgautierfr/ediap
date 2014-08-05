@@ -20,7 +20,7 @@ class var_creator(Actor):
         state.namespace[self.name] = var
 
     def get_help(self, state):
-        return "create variable %s"%self.name
+        return [('text', "create variable %s"%self.name)]
 
 class setter(Actor):
     def __init__(self, level, name, value):
@@ -32,7 +32,7 @@ class setter(Actor):
         state.namespace[self.name.v].set(self.value.get_node(state.namespace))
 
     def get_help(self, state):
-        return "set variable %s to %s"%(self.name.v, self.value.get_help_text(state.namespace))
+        return [('text', "set variable %s to %s"%(self.name.v, self.value.get_help_text(state.namespace)))]
 
 
 class _if(Actor):
