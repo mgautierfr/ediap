@@ -2,7 +2,7 @@ from . import shapes as _shapes
 from language import nodes as _nodes
 from language.actors import Actor
 
-__all__ = ['rectangle', 'ellipse', 'quad', 'triangle' , 'fill']
+__all__ = ['draw_rectangle', 'draw_ellipse', 'draw_quad', 'draw_triangle' , 'change_color']
 
 class _ColorNode(_nodes.Node):
     def __init__(self, r, v, b):
@@ -36,7 +36,7 @@ class _IntArgument:
             value = min(self.stop, value)
         return value
 
-class rectangle(Actor):
+class draw_rectangle(Actor):
     help = "Draw a rectangle"
     arguments = [_IntArgument("x position of the top left corner"),
                  _IntArgument("y position of the top left corner"),
@@ -60,7 +60,7 @@ class rectangle(Actor):
                 ('text' , " with size %sx%s"%(self.w.get_node(namespace)(), self.h.get_node(namespace)()))
                ]
 
-class ellipse(rectangle):
+class draw_ellipse(draw_rectangle):
     help = "Draw a ellipse"
     arguments = [_IntArgument("x position of the top left corner"),
                  _IntArgument("y position of the top left corner"),
@@ -88,7 +88,7 @@ class _polygon(Actor):
         y = y.get_node(state.namespace)
         return x, y
 
-class quad(_polygon):
+class draw_quad(_polygon):
     help = "Draw a quad"
     arguments = [_IntArgument("x position of the top first corner"),
                  _IntArgument("y position of the top first corner"),
@@ -125,7 +125,7 @@ class quad(_polygon):
                 ('text', "%sx%s "%(self.p3[0].get_node(namespace)(), self.p3[1].get_node(namespace)()))
                ]
 
-class triangle(_polygon):
+class draw_triangle(_polygon):
     help = "Draw a quad"
     arguments = [_IntArgument("x position of the top first corner"),
                  _IntArgument("y position of the top first corner"),
@@ -157,7 +157,7 @@ class triangle(_polygon):
                  ('text', "%sx%s "%(self.p2[0].get_node(namespace)(), self.p2[1].get_node(namespace)())),
                ]
 
-class fill(Actor):
+class change_color(Actor):
     help = "Change the color of the fill parameter"
     arguments = [_IntArgument("red", (0, 255), 10),
                  _IntArgument("green", (0, 255), 10),
