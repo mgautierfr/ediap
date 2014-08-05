@@ -5,7 +5,7 @@ import tkinter
 
 class TextHelp(tkinter.Canvas):
     def __init__(self, parent, text, program):
-        tkinter.Canvas.__init__(self, parent, width=150)
+        tkinter.Canvas.__init__(self, parent, width=200, background="white")
         self.text = text
         self.program = program
         self.program.connect("activeStep_changed", self.on_activeStep_changed)
@@ -20,4 +20,4 @@ class TextHelp(tkinter.Canvas):
         for lineno, text in step.help.items():
             pos = self.text.bbox("%d.0"%(lineno))
             if pos:
-                self.create_text(0, pos[1], fill="black", text=text, anchor="nw", width=150, justify="right")
+                self.create_text(200, pos[1], fill="black", text=text, anchor="ne", width=200, justify="right")
