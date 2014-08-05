@@ -38,8 +38,10 @@ class LineTagger:
     def tag_Identifier(self, node):
         def on_enter(event):
             self.text.tag_configure("%s_assign"%node.v, foreground="red")
+            self.text.tag_configure("%s_decl"%node.v, foreground="red")
         def on_leave(event):
             self.text.tag_configure("%s_assign"%node.v, foreground="")
+            self.text.tag_configure("%s_decl"%node.v, foreground="")
         tag_name = "%s_%d"%(node.v, self.lineno)
         start_index = "%d.%d"%(self.lineno, node.start)
         end_index = "%d.%d"%(self.lineno, node.end)
@@ -77,6 +79,11 @@ class LineTagger:
         start_index = "%d.%d"%(self.lineno, instruction.level)
         end_index = "%s + 6c"%(start_index)
         self.text.tag_add("keyword", start_index, end_index)
+        for (type_, arg) in instruction.args:
+            tag_name = "%s_decl"%(arg.v)
+            start_index = "%d.%d"%(self.lineno, arg.start)
+            end_index = "%d.%d"%(self.lineno, arg.end)
+            self.text.tag_add(tag_name, start_index, end_index)
 
     def tag_Comment(self, instruction):
         self.text.tag_add("comment", "%d.0"%self.lineno, "%d.0 lineend"%self.lineno)
@@ -85,6 +92,10 @@ class LineTagger:
         start_index = "%d.%d"%(self.lineno, instruction.level)
         end_index = "%s + 3c"%(start_index)
         self.text.tag_add("keyword", start_index, end_index)
+        tag_name = "%s_decl"%(instruction.name.v)
+        start_index = "%d.%d"%(self.lineno, instruction.name.start)
+        end_index = "%d.%d"%(self.lineno, instruction.name.end)
+        self.text.tag_add(tag_name, start_index, end_index)
 
 
 class TextModifier:
