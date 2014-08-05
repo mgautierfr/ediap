@@ -44,6 +44,8 @@ class ActiveStateShower(tkinter.Frame):
         return node
 
     def on_currentChanged(self):
+        if self.program.displayedStep is None:
+            return
         state = self.program.steps[self.program.displayedStep].state
         if not self.program.to_many_step():
             self.canvas.delete('helpers')
@@ -59,6 +61,8 @@ class ActiveStateShower(tkinter.Frame):
             self.canvas.delete('all')
 
     def on_token_changed(self):
+        if self.program.displayedStep is None:
+            return
         state = self.program.steps[self.program.displayedStep].state
         if not self.program.to_many_step():
             self.canvas.delete('helpers')
@@ -77,6 +81,8 @@ class ActiveStateShower(tkinter.Frame):
         self.update_namespace(state)
 
     def update(self, *args):
+        if self.program.displayedStep is None:
+            return
         state = self.program.steps[self.program.displayedStep].state
         self.idle_handle = None
         self.canvas.delete('all')
