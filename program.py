@@ -3,6 +3,13 @@ import utils
 from language import grammar
 from picoparse import NoMatch
 
+class Help:
+    def __init__(self):
+        self.texts = {}
+
+    def add(self, line, text):
+        self.texts[line] = text
+
 class Line:
     def __init__(self, lineno, lineText):
         self.lineno = lineno
@@ -44,9 +51,10 @@ class Instruction:
         return self.actor.klass
 
 class Step:
-    def __init__(self, instruction, state):
+    def __init__(self, instruction, state, help=None):
         self.instruction = instruction
         self.state = state
+        self.help = help
 
     @property
     def lineno(self):

@@ -1,5 +1,5 @@
 
-from program import Instruction, Step
+from program import Instruction, Step, Help
 from language import nodes
 
 class InvalidIndent(Exception):
@@ -134,39 +134,42 @@ class Interpreter:
             if instruction.level > level:
                 raise InvalidIndent(pc, instruction.level, level, str(instruction.line))
             pc += 1
-            if instruction.klass in ("_if", "_while"):
-                result = instruction.actor(state)
-                self.program.steps.append(Step(instruction, state))
-                while result:
-                    pc_, state = self.run_level(state, self.program.actors[pc].level, pc)
-                    if instruction.klass == "_if":
-                        pc = pc_
-                        break
+            help = Help()
+            try:
+                if instruction.klass in ("_if", "_while"):
                     result = instruction.actor(state)
-                    self.program.steps.append(Step(instruction, state))
-                else:
+                    self.program.steps.append(Step(instruction, state, help))
+                    while result:
+                        pc_, state = self.run_level(state, self.program.actors[pc].level, pc)
+                        if instruction.klass == "_if":
+                            pc = pc_
+                            break
+                        result = instruction.actor(state)
+                        self.program.steps.append(Step(instruction, state, help))
+                    else:
+                        pc = self.pass_level(self.program.actors[pc].level, pc)
+                elif instruction.klass == "functionDef":
+                    state = self.new_state(instruction.lineno, state)
+                    instruction.actor(state)
+                    state.functions[instruction.actor.name.v].pc = pc
                     pc = self.pass_level(self.program.actors[pc].level, pc)
-            elif instruction.klass == "functionDef":
-                state = self.new_state(instruction.lineno, state)
-                instruction.actor(state)
-                state.functions[instruction.actor.name.v].pc = pc
-                pc = self.pass_level(self.program.actors[pc].level, pc)
-            elif instruction.klass == "functionCall":
-                state = self.new_state(instruction.lineno, state)
-                newState = state.child()
-                instruction.actor(newState)
-                pc_ = newState.functions[instruction.actor.name.v].pc
-                _, state_ = self.run_level(newState, self.program.actors[pc_].level, pc_)
-                state.hiddenState = state_.hiddenState
-                state.shapes = state_.shapes
-                state.namespace = state_.namespace.parent
-                self.program.steps.append(Step(instruction, state))
-            else:
-                #print(self.source[lineno-1])
-                state = self.new_state(instruction.lineno, state)
-                instruction.actor(state)
-                self.program.steps.append(Step(instruction, state))
-                #print(state)
+                elif instruction.klass == "functionCall":
+                    state = self.new_state(instruction.lineno, state)
+                    newState = state.child()
+                    instruction.actor(newState)
+                    pc_ = newState.functions[instruction.actor.name.v].pc
+                    _, state_ = self.run_level(newState, self.program.actors[pc_].level, pc_)
+                    state.hiddenState = state_.hiddenState
+                    state.shapes = state_.shapes
+                    state.namespace = state_.namespace.parent
+                    self.program.steps.append(Step(instruction, state, help))
+                else:
+                    state = self.new_state(instruction.lineno, state)
+                    instruction.actor(state)
+                    self.program.steps.append(Step(instruction, state, help))
+            except KeyError as e:
+                help.add(instruction.lineno, "%s is not a declared variable."%e.args)
+                self.program.steps.append(Step(instruction, state, help))
             if len(self.program.steps) >= self.watchdog:
                 raise ToManyInstruction()
 
@@ -178,6 +181,8 @@ class Interpreter:
             _, state = self.run_level(None, 0, 0)
         except ToManyInstruction:
             print("to many instruction")
+        except:
+            pass
         self.program.event("steps_changed")()
         self.program.displayedStep = len(self.program.steps)-1
 
