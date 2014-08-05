@@ -146,7 +146,7 @@ class TextModifier:
         if self.changing:
             self.token = None
             self.changing = False
-            self.program.event("source_changed")()
+            self.text.edit_modified(True)
 
 class TextInput(tkinter.Text):
     def __init__(self, parent, program):
