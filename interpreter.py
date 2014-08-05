@@ -89,12 +89,7 @@ class Interpreter:
     def new_state(self, lineno, state):
         if not state:
             state = State(lineno)
-            state.hiddenState.update({'fillColor'       : nodes.Value("#000000"),
-                                      'view_left'       : nodes.Value(0),
-                                      'view_width'      : nodes.Value(100),
-                                      'view_top'        : nodes.Value(0),
-                                      'view_height'     : nodes.Value(100)
-                                 })
+            state.hiddenState.update({'fillColor' : nodes.Value("#000000")})
             state.hiddenState['fillColor'].opositColor = "#FFFFFF"
         else:
             state = state.clone(lineno)

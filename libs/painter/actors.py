@@ -2,7 +2,7 @@ from . import shapes as _shapes
 from language import nodes as _nodes
 from language.actors import Actor
 
-__all__ = ['rectangle', 'ellipse', 'quad', 'triangle' , 'fill', 'view']
+__all__ = ['rectangle', 'ellipse', 'quad', 'triangle' , 'fill']
 
 class _ColorNode(_nodes.Node):
     def __init__(self, r, v, b):
@@ -48,24 +48,9 @@ class rectangle(Actor):
         Actor.__init__(self, level)
         self.x, self.y, self.w, self.h = x, y, w, h
 
-    def get_bounding_rect(self, state):
-        x0 = self.x.get_node(state.namespace)
-        y0 = self.y.get_node(state.namespace)
-        x0 = _nodes.Operator('-', x0, state.hiddenState['view_left'])
-        y0 = _nodes.Operator('-', y0, state.hiddenState['view_top'])
-        x1 = _nodes.Operator('+', x0, self.w.get_node(state.namespace))
-        y1 = _nodes.Operator('+', y0, self.h.get_node(state.namespace))
-
-        x0 = _nodes.Operator('/', x0, state.hiddenState['view_width'])
-        x1 = _nodes.Operator('/', x1, state.hiddenState['view_width'])
-        y0 = _nodes.Operator('/', y0, state.hiddenState['view_height'])
-        y1 = _nodes.Operator('/', y1, state.hiddenState['view_height'])
-        return x0, y0, x1, y1
-
     def __call__(self, state):
-        x0, y0, x1, y1 = self.get_bounding_rect(state)
         x, y, w, h = (t.get_node(state.namespace) for t in (self.x, self.y, self.w, self.h))
-        state.shapes.append(_shapes.Rectangle(state.lineno, x0, y0, x1, y1, x, y, w, h, state.hiddenState['fillColor']))
+        state.shapes.append(_shapes.Rectangle(state.lineno, x, y, w, h, state.hiddenState['fillColor']))
 
     def get_help(self, state):
         namespace = state.namespace
@@ -84,9 +69,8 @@ class ellipse(rectangle):
                 ]
 
     def __call__(self, state):
-        x0, y0, x1, y1 = self.get_bounding_rect(state)
         x, y, w, h = (t.get_node(state.namespace) for t in (self.x, self.y, self.w, self.h))
-        state.shapes.append(_shapes.Ellipse(state.lineno, x0, y0, x1, y1, x, y, w, h, state.hiddenState['fillColor']))
+        state.shapes.append(_shapes.Ellipse(state.lineno, x, y, w, h, state.hiddenState['fillColor']))
 
     def get_help(self, state):
         namespace = state.namespace
@@ -102,10 +86,6 @@ class _polygon(Actor):
         x, y = point
         x = x.get_node(state.namespace)
         y = y.get_node(state.namespace)
-        x = _nodes.Operator('-', x, state.hiddenState['view_left'])
-        y = _nodes.Operator('-', y, state.hiddenState['view_top'])
-        x = _nodes.Operator('/', x, state.hiddenState['view_width'])
-        y = _nodes.Operator('/', y, state.hiddenState['view_height'])
         return x, y
 
 class quad(_polygon):
@@ -198,25 +178,3 @@ class fill(Actor):
         return [('text', "Change current color to "),
                 ('color', "#%02x%02x%02x"%(r, v, b))
                ]
-
-
-class view(Actor):
-    help = "Change the view of the canvas"
-    arguments = [_IntArgument("left of the view"),
-                 _IntArgument("top of the view"),
-                 _IntArgument("right of the view"),
-                 _IntArgument("bottom of the view")
-                ]
-
-    def __init__(self, level, left, top, width, height):
-        _Actor.__init__(self, level)
-        self.left, self.top, self.width, self.height = left, top, width, height
-
-    def __call__(self, state):
-        state.hiddenState['view_left'] = self.left.get_node(state.namespace)
-        state.hiddenState['view_top'] = self.top.get_node(state.namespace)
-        state.hiddenState['view_width'] = self.width.get_node(state.namespace)
-        state.hiddenState['view_height'] = self.height.get_node(state.namespace)
-
-    def get_help(self, state):
-        return [('text', "Change the current view")]
