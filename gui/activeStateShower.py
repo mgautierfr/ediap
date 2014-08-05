@@ -33,9 +33,14 @@ class ActiveStateShower(tkinter.Frame):
         if parsed is None:
             return None
         token = parsed.get_token_at_pos(pos)
-        if token:
-            token = token.get_node(namespace)
-        return token
+        try:
+            node = token.get_node(namespace) if token else None
+        except KeyError:
+            # Node cannot be resolved in the namespace.
+            # (Case where token name is in a function body
+            #   but namespace is not corresponding to the function.)
+            node = None
+        return node
 
     def on_currentChanged(self):
         state = self.program.steps[self.program.displayedStep].state
