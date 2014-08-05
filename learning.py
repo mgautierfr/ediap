@@ -66,6 +66,7 @@ def main():
     text = gui.TextInput(root, program)
     canvas = gui.ActiveStateShower(root, program)
     stepOutput = gui.StepOutput(root, text, program)
+    textHelp = gui.TextHelp(root, text, program)
     help = gui.HelpShower(root, program)
 
     #Place them in the rigth order
@@ -73,6 +74,7 @@ def main():
     help.place()
     canvas.place()
     stepOutput.place()
+    textHelp.place()
     text.place()
 
     # create the interpretor and go, go, go

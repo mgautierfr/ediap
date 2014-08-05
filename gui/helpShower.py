@@ -45,10 +45,8 @@ class HelpShower(tkinter.Label):
     def on_activeStep_changed(self,step):
         help = self.program.steps[self.program.displayedStep].help
         lineno =  self.program.steps[self.program.displayedStep].lineno
-        if help is None:
-            return
         self.helpv.set("")
-        if not help.texts:
-            return
-
-        self.helpv.set(help.texts[lineno])
+        try:
+            self.helpv.set(help[lineno])
+        except KeyError:
+            pass

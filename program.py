@@ -3,13 +3,6 @@ import utils
 from language import grammar
 from picoparse import NoMatch
 
-class Help:
-    def __init__(self):
-        self.texts = {}
-
-    def add(self, line, text):
-        self.texts[line] = text
-
 class Line:
     def __init__(self, lineno, lineText):
         self.lineno = lineno
@@ -51,14 +44,17 @@ class Instruction:
         return self.actor.klass
 
 class Step:
-    def __init__(self, instruction, state, help=None):
+    def __init__(self, instruction, state):
         self.instruction = instruction
         self.state = state
-        self.help = help
+        self.help = {}
 
     @property
     def lineno(self):
         return self.instruction.lineno
+
+    def add_help(self, lineno, text):
+        self.help[lineno] = text
 
 class ExtendList(list):
     def __getitem__(self, index):

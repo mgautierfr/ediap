@@ -19,6 +19,9 @@ class var_creator(Actor):
             var = objects.Variable()
         state.namespace[self.name] = var
 
+    def get_help(self, state):
+        return "create variable %s"%self.name
+
 class setter(Actor):
     def __init__(self, level, name, value):
         Actor.__init__(self, level)
@@ -28,6 +31,10 @@ class setter(Actor):
     def __call__(self, state):
         state.namespace[self.name.v].set(self.value.get_node(state.namespace))
 
+    def get_help(self, state):
+        return "set variable %s to %s"%(self.name.v, self.value.get_help_text(state.namespace))
+
+
 class _if(Actor):
     def __init__(self, level, test):
         Actor.__init__(self, level)
@@ -36,6 +43,9 @@ class _if(Actor):
     def __call__(self, state):
         test_node = self.test.get_node(state.namespace)
         return test_node()
+
+    def get_help_text(self, state):
+        return self.test.get_help_text(state.namespace)
 
 class _while(_if):
     pass
@@ -63,3 +73,4 @@ class functionCall(Actor):
                 var = objects.Variable()
             state.namespace.dict[argName] = var
             var.set(arg.get_node(state.namespace))
+

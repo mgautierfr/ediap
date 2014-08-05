@@ -1,5 +1,5 @@
 
-from program import Instruction, Step, Help
+from program import Instruction, Step
 from language import nodes
 
 class InvalidIndent(Exception):
@@ -133,27 +133,36 @@ class Interpreter:
             if instruction.level > level:
                 raise InvalidIndent(pc, instruction.level, level, str(instruction.line))
             pc += 1
-            help = Help()
             try:
                 if instruction.klass in ("_if", "_while"):
                     result = instruction.actor(state)
-                    self.program.steps.append(Step(instruction, state, help))
+                    step = Step(instruction, state)
+                    self.program.steps.append(step)
                     while result:
+                        step.add_help(instruction.lineno, "%s is True"%instruction.actor.get_help_text(state))
                         pc_, state = self.run_level(state, self.program.actors[pc].level, pc)
                         if instruction.klass == "_if":
                             pc = pc_
                             break
                         result = instruction.actor(state)
-                        self.program.steps.append(Step(instruction, state, help))
+                        step = Step(instruction, state)
+                        self.program.steps.append(step)
                     else:
+                        step.add_help(instruction.lineno, "%s is False"%instruction.actor.get_help_text(state))
                         pc = self.pass_level(self.program.actors[pc].level, pc)
                 elif instruction.klass == "functionDef":
                     state = self.new_state(instruction.lineno, state)
                     instruction.actor(state)
                     state.functions[instruction.actor.name.v].pc = pc
+                    step = Step(instruction, state)
+                    self.program.steps.append(step)
+                    step.add_help(instruction.lineno, "create the function %s"%instruction.actor.name.v)
                     pc = self.pass_level(self.program.actors[pc].level, pc)
                 elif instruction.klass == "functionCall":
                     state = self.new_state(instruction.lineno, state)
+                    step = Step(instruction, state)
+                    step.add_help(instruction.lineno, "call the function %s"%instruction.actor.name.v)
+                    self.program.steps.append(step)
                     newState = state.child()
                     instruction.actor(newState)
                     pc_ = newState.functions[instruction.actor.name.v].pc
@@ -161,14 +170,21 @@ class Interpreter:
                     state.hiddenState = state_.hiddenState
                     state.shapes = state_.shapes
                     state.namespace = state_.namespace.parent
-                    self.program.steps.append(Step(instruction, state, help))
+                    step = Step(instruction, state)
+                    step.add_help(instruction.lineno, "returning from function %s"%instruction.actor.name.v)
+                    self.program.steps.append(step)
                 else:
                     state = self.new_state(instruction.lineno, state)
                     instruction.actor(state)
-                    self.program.steps.append(Step(instruction, state, help))
+                    step = Step(instruction, state)
+                    step.add_help(instruction.lineno, instruction.actor.get_help(state))
+                    self.program.steps.append(step)
             except KeyError as e:
-                help.add(instruction.lineno, "%s is not a declared variable."%e.args)
-                self.program.steps.append(Step(instruction, state, help))
+                if not hasattr(e, "handled"):
+                    e.handled = True
+                    step = Step(instruction, state)
+                    step.add_help(instruction.lineno, "%s is not a declared variable."%e.args)
+                    self.program.steps.append(step)
                 raise
             if self.program.to_many_step():
                 help.add(instruction.lineno, "To many instruction at line %d"%instruction.lineno)

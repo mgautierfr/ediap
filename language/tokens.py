@@ -27,6 +27,9 @@ class Value(Token):
     def get_token_at_pos(self, pos):
         return self
 
+    def get_help_text(self, namespace):
+        return self.v
+
 class Int(Value):
     pass
 
@@ -40,9 +43,15 @@ class Paren(Value):
     def get_token_at_pos(self, pos):
         return self.v.get_token_at_pos(pos)
 
+    def get_help_text(self, namespace):
+        return "(%s)"%self.v.get_help_text(namespace)
+
 class Identifier(Value):
     def get_node(self, namespace):
         return namespace[self.v].get()
+
+    def get_help_text(self, namespace):
+        return "%s(%s)"%(self.v, self.get_node(namespace)())
 
 class BinaryOp(Token):
     def __init__(self, name, x, y, start, end):
@@ -76,3 +85,5 @@ class BinaryOp(Token):
             return self.y.get_token_at_pos(pos)
         return None
 
+    def get_help_text(self, namespace):
+        return "%s %s %s"%(self.x.get_help_text(namespace), self.name.v, self.y.get_help_text(namespace))

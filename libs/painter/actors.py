@@ -67,6 +67,9 @@ class rectangle(Actor):
         x, y, w, h = (t.get_node(state.namespace) for t in (self.x, self.y, self.w, self.h))
         state.shapes.append(_shapes.Rectangle(state.lineno, x0, y0, x1, y1, x, y, w, h, state.hiddenState['fillColor']))
 
+    def get_help(self, state):
+        return "Draw a rectangle"
+
 class ellipse(rectangle):
     help = "Draw a ellipse"
     arguments = [_IntArgument("x position of the top left corner"),
@@ -79,6 +82,9 @@ class ellipse(rectangle):
         x0, y0, x1, y1 = self.get_bounding_rect(state)
         x, y, w, h = (t.get_node(state.namespace) for t in (self.x, self.y, self.w, self.h))
         state.shapes.append(_shapes.Ellipse(state.lineno, x0, y0, x1, y1, x, y, w, h, state.hiddenState['fillColor']))
+
+    def get_help(self, state):
+        return "Draw a ellipse"
 
 class _polygon(Actor):
     @staticmethod
@@ -118,6 +124,9 @@ class quad(_polygon):
         p3 = self.update_coord(self.p3, state)
         state.shapes.append(_shapes.Polygon(state.lineno, state.hiddenState['fillColor'], (p0+p1+p2+p3)))
 
+    def get_help(self, state):
+        return "Draw a quad"
+
 class triangle(_polygon):
     help = "Draw a quad"
     arguments = [_IntArgument("x position of the top first corner"),
@@ -140,6 +149,9 @@ class triangle(_polygon):
         p2 = self.update_coord(self.p2, state)
         state.shapes.append(_shapes.Polygon(state.lineno, state.hiddenState['fillColor'], (p0+p1+p2)))
 
+    def get_help(self, state):
+        return "Draw a triangle"
+
 class fill(Actor):
     help = "Change the color of the fill parameter"
     arguments = [_IntArgument("red", (0, 255), 10),
@@ -154,6 +166,9 @@ class fill(Actor):
     def __call__(self, state):
         r, v, b = (token.get_node(state.namespace) for token in (self.r, self.v, self.b))
         state.hiddenState['fillColor'] = _ColorNode(r, v, b)
+
+    def get_help(self, state):
+        return "Change current color"
 
 
 class view(Actor):
@@ -174,6 +189,5 @@ class view(Actor):
         state.hiddenState['view_width'] = self.width.get_node(state.namespace)
         state.hiddenState['view_height'] = self.height.get_node(state.namespace)
 
-
-
-
+    def get_help(self, state):
+        return "Change the current view"
