@@ -19,7 +19,7 @@ class CanvasCreator:
             for element in self.elements:
                 elem_pos = self.canvas.bbox(element)
                 elem_size = elem_pos[2]-elem_pos[0]
-                if current_size+elem_size>=self.xSize:
+                if current_size and current_size+elem_size>=self.xSize:
                     lines.append([])
                     current_size = 0
                 lines[-1].append(element)
