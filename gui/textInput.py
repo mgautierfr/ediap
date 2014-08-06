@@ -170,8 +170,9 @@ class TextInput(tkinter.Text):
 
         self.program.connect("source_changed", self.on_modified)
         self.program.connect("activeStep_changed", self.on_activeStep_changed)
-        for line in program.source:
+        for line in program.source[:-1]:
             self.insert("end", str(line)+"\n")
+        self.insert("end", str(program.source[-1]))
 
         self.edit_modified(False)
         self.bind("<<Modified>>", self.on_textModified)

@@ -85,7 +85,10 @@ class Program(utils.EventSource):
         self.source = []
         try:
             with open(fileName, 'r') as f:
-                for lineno, line in enumerate(f.readlines(), 1):
+                lines = f.readlines()
+                if lines[-1] == "\n":
+                    lines = lines[:-1]
+                for lineno, line in enumerate(lines, 1):
                     self.source.append(Line(lineno, line[:-1]))
         except FileNotFoundError:
             pass

@@ -32,19 +32,30 @@ def main():
     #Place them in the rigth order
     root['menu'] = menuBar
     root.grid_propagate(True)
-    stepChanger.grid(row=0, column=0, columnspan=4, sticky="nesw")
-    text.grid(row=1, column=0, sticky="nesw")
-    textHelp.grid(row=1, column=1, sticky="nesw")
-    stepOutput.grid(row=1, column=2, sticky="nesw")
-    activeStateShower.grid(row=1, column=3, sticky="nesw")
-    help.grid(row=2, column=0, columnspan=4, sticky="nesw")
-    root.columnconfigure(0, weight=1)
-    root.columnconfigure(1, weight=0)
-    root.columnconfigure(2, weight=1)
-    root.columnconfigure(3, weight=0)
+    stepChanger.grid(row=0, column=0, columnspan=50, sticky="nesw")
+    vScrollbar = tkinter.Scrollbar(root, orient=tkinter.VERTICAL)
+    vScrollbar.grid(row=1, column=0, sticky="nesw")
+    text.grid(row=1, column=10, sticky="nesw")
+    textHelp.grid(row=1, column=11, sticky="nesw")
+    stepOutput.grid(row=1, column=12, sticky="nesw")
+    activeStateShower.grid(row=1, column=13, sticky="nesw")
+    help.grid(row=2, column=0, columnspan=50, sticky="nesw")
+    root.columnconfigure(0, weight=0)
+    root.columnconfigure(10, weight=1)
+    root.columnconfigure(11, weight=0)
+    root.columnconfigure(12, weight=1)
+    root.columnconfigure(13, weight=0)
     root.rowconfigure(0, weight=0)
     root.rowconfigure(1, weight=1)
     root.rowconfigure(2, weight=0)
+
+    def proxy_yview(*args, **kwords):
+        text.yview(*args, **kwords)
+        textHelp.on_activeStep_changed()
+        stepOutput.on_steps_changed()
+
+    text['yscrollcommand'] = vScrollbar.set
+    vScrollbar['command'] = proxy_yview
 
     # create the interpretor and go, go, go
     interpretor = interpreter.Interpreter(program)

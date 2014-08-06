@@ -5,9 +5,10 @@ import tkinter
 canvas_size = 200
 
 class CanvasCreator:
-    def __init__(self, canvas, pos):
+    def __init__(self, canvas, ySize, yDelta):
         self.canvas = canvas
-        self.pos = pos
+        self.ySize = ySize
+        self.yDelta = yDelta
         self.elements = []
 
     def finish(self):
@@ -29,22 +30,22 @@ class CanvasCreator:
             for element in reversed(elements):
                 elem_pos = self.canvas.bbox(element)
                 spaceLeft -= (elem_pos[2]-elem_pos[0])
-                self.canvas.move(element, spaceLeft, self.pos[1]+elem_pos[3]*lineno)
+                self.canvas.move(element, spaceLeft, self.yDelta+elem_pos[3]*lineno)
 
     def feed(self, type_, content):
         if type_ in ("text", "error"):
             self.elements.append(self.canvas.create_text(0, 0, text=content, anchor="nw", fill="red" if type_=="error" else "black"))
         elif type_=="color":
-            self.elements.append(self.canvas.create_rectangle(0, 0, self.pos[3]*1.5, self.pos[3], fill=content))
+            self.elements.append(self.canvas.create_rectangle(0, 0, self.ySize*1.5, self.ySize, fill=content))
         elif type_=="shape":
             if content == "rectangle":
-                self.elements.append(self.canvas.create_rectangle(0, 0, self.pos[3]*1.5, self.pos[3]))
+                self.elements.append(self.canvas.create_rectangle(0, 0, self.ySize*1.5, self.ySize))
             elif content=="ellipse":
-                self.elements.append(self.canvas.create_oval(0, 0, self.pos[3]*1.5, self.pos[3]))
+                self.elements.append(self.canvas.create_oval(0, 0, self.ySize*1.5, self.ySize))
             elif content=="quad":
-                self.elements.append(self.canvas.create_polygon(0, 0, 0, self.pos[3], self.pos[3]*1.5, self.pos[3], self.pos[3], self.pos[3]/2))
+                self.elements.append(self.canvas.create_polygon(0, 0, 0, self.ySize, self.ySize*1.5, self.ySize, self.ySize, self.ySize/2))
             elif content=="triangle":
-                self.elements.append(self.canvas.create_polygon(0, 0, 0, self.pos[3], self.pos[3]*1.5, self.pos[3]))
+                self.elements.append(self.canvas.create_polygon(0, 0, 0, self.ySize, self.ySize*1.5, self.ySize))
 
 
 class TextHelp(tkinter.Canvas):
@@ -55,7 +56,22 @@ class TextHelp(tkinter.Canvas):
         self.program.connect("activeStep_changed", self.on_activeStep_changed)
 
 
-    def on_activeStep_changed(self, step):
+    def _on_activeStep_changed(self, step):
+        self.delete('all')
+        if self.program.displayedStep is None:
+            return
+        step = self.program.steps[self.program.displayedStep]
+        firstDisplayedIndex = self.text.index("@0,0 + 1l")
+        firstDisplayedline = int(firstDisplayedIndex.split('.')[0])
+        _, yDelta, _, ySize = self.text.bbox(firstDisplayedIndex)
+        for lineno, what in step.help.items():
+            creator = CanvasCreator(self, ySize, yDelta)
+            for type_, content in what:
+                creator.feed(type_, content)
+            creator.finish()
+        self['scrollregion'] = 0, 0, canvas_size, 14*len(self.program.source)
+
+    def on_activeStep_changed(self, *args):
         self.delete('all')
         if self.program.displayedStep is None:
             return
@@ -63,7 +79,8 @@ class TextHelp(tkinter.Canvas):
         for lineno, what in step.help.items():
             pos = self.text.bbox("%d.0"%(lineno))
             if pos:
-                creator = CanvasCreator(self, pos)
+                _, yDelta, _, ySize = pos
+                creator = CanvasCreator(self, ySize, yDelta)
                 for type_, content in what:
                     creator.feed(type_, content)
                 creator.finish()
