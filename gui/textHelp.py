@@ -32,8 +32,8 @@ class CanvasCreator:
                 self.canvas.move(element, spaceLeft, self.pos[1]+elem_pos[3]*lineno)
 
     def feed(self, type_, content):
-        if type_ == "text":
-            self.elements.append(self.canvas.create_text(0, 0, text=content, anchor="nw"))
+        if type_ in ("text", "error"):
+            self.elements.append(self.canvas.create_text(0, 0, text=content, anchor="nw", fill="red" if type_=="error" else "black"))
         elif type_=="color":
             self.elements.append(self.canvas.create_rectangle(0, 0, self.pos[3]*1.5, self.pos[3], fill=content))
         elif type_=="shape":

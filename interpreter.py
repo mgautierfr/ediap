@@ -191,11 +191,11 @@ class Interpreter:
                 if not hasattr(e, "handled"):
                     e.handled = True
                     step = Step(instruction, state)
-                    step.add_help(instruction.lineno, [('text', "%s is not a declared variable."%e.args)])
+                    step.add_help(instruction.lineno, [('error', "%s is not a declared variable."%e.args)])
                     self.program.steps.append(step)
                 raise
             if self.program.to_many_step():
-                step.add_help(instruction.lineno, [('text', "To many instruction at line %d"%instruction.lineno)])
+                step.add_help(instruction.lineno, [('error', "To many instruction at line %d"%instruction.lineno)])
                 raise ToManyInstruction()
 
         return pc, state
