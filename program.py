@@ -72,6 +72,7 @@ class Program(utils.EventSource):
         self.helpers       = (None, None)
         self.current       = (None, None)
         self.watchdog      = 1000
+        self.fileName      = None
 
     def to_many_step(self):
         return len(self.steps) >= self.watchdog
@@ -79,6 +80,16 @@ class Program(utils.EventSource):
     def init_steps(self):
         self.steps = ExtendList()
         self._displayedStep = None
+
+    def load_file(self, fileName):
+        self.fileName = fileName
+        self.source = []
+        try:
+            with open(fileName, 'r') as f:
+                for lineno, line in enumerate(f.readlines(), 1):
+                    self.source.append(Line(lineno, line[:-1]))
+        except FileNotFoundError:
+            pass
 
     def set_source(self, lines):
         self.source = []

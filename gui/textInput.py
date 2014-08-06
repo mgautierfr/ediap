@@ -1,5 +1,5 @@
 
-import tkinter
+import tkinter, tkinter.font
 
 def int_scale(value, neg):
     return value + (1-2*neg)

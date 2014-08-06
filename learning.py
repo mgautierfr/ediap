@@ -1,57 +1,11 @@
 #!/usr/bin/env python3
 
 
-import tkinter, tkinter.font
-from pprint import pprint
+import tkinter
 import interpreter
 import gui
-from program import Program, Line
-
-default_source = """#Ceci est une fonction qui dessine une maison
-define house(var x, var y, var w, var h)
-  use var ratio
-  ratio = 0.3
-  draw_triangle(x,y+h*ratio, x+w,y+h*ratio, x+w/2,y)
-  draw_rectangle(x, y+h*ratio, w, h*(1-ratio))
-
-define test(var a, var b)
-  draw_ellipse(x*a, b, 10, 10)
-  x = 5
-  draw_ellipse(x*a, b+10, 10, 10)
-
-use var x
-use var y
-
-# On attribue 1 la variable x
-x = 1
-change_color(0, 0, 255)
-draw_ellipse(5, 5, 10, 10)
-draw_rectangle(20, 5+x*2, 15, 5)
-
-change_color(255, 255, 0)
-do test(5, 20)
-draw_rectangle(20, 5+x*2, 15, 5)
-
-change_color(255, 0, 255)
-do house(15, 50, 15, 35)
-
-change_color(0, 255, 0)
-draw_quad(50,10, 50,20, 60,20, 60,10)
-
-change_color(0, 255, 255)
-x = 0
-while x < 3
-  draw_rectangle(50+10*x, 25+2*x, 10, 10)
-  x = x + 1
-
-x=0
-while x < 10
-  y = 0
-  while y < 5
-    change_color(25*x, 50*y, 0)
-    draw_rectangle(50+5*x, 50+5*y, 3, 3)
-    y = y + 1
-  x = x + 1"""
+from program import Program
+import sys
 
 
 def main():
@@ -59,7 +13,12 @@ def main():
     from libs import painter
 
     program = Program(painter)
-    program.set_source(default_source.split('\n'))
+    try:
+        fileToLoad = sys.argv[1]
+    except IndexError:
+        print("Ne file specified, opening first.lsa")
+        fileToLoad = "first.lsa"
+    program.load_file(fileToLoad)
 
     #Create the gui widgets
     stepChanger = gui.StepChanger(root, program)
