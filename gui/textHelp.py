@@ -2,17 +2,16 @@
 
 import tkinter
 
-canvas_size = 200
-
 class CanvasCreator:
-    def __init__(self, canvas, ySize, yDelta):
+    def __init__(self, canvas, ySize, yDelta, xSize):
         self.canvas = canvas
         self.ySize = ySize
         self.yDelta = yDelta
+        self.xSize = xSize
         self.elements = []
 
     def finish(self):
-        if sum(self.canvas.bbox(el)[2] for el in self.elements) <= canvas_size:
+        if sum(self.canvas.bbox(el)[2] for el in self.elements) <= self.xSize:
             lines = [self.elements]
         else:
             current_size = 0
@@ -20,13 +19,13 @@ class CanvasCreator:
             for element in self.elements:
                 elem_pos = self.canvas.bbox(element)
                 elem_size = elem_pos[2]-elem_pos[0]
-                if current_size+elem_size>=canvas_size:
+                if current_size+elem_size>=self.xSize:
                     lines.append([])
                     current_size = 0
                 lines[-1].append(element)
                 current_size += elem_size
         for lineno, elements in enumerate(lines):
-            spaceLeft = canvas_size
+            spaceLeft = self.xSize
             for element in reversed(elements):
                 elem_pos = self.canvas.bbox(element)
                 spaceLeft -= (elem_pos[2]-elem_pos[0])
@@ -50,26 +49,10 @@ class CanvasCreator:
 
 class TextHelp(tkinter.Canvas):
     def __init__(self, parent, text, program):
-        tkinter.Canvas.__init__(self, parent, width=canvas_size, background="white")
+        tkinter.Canvas.__init__(self, parent, width=200, background="white")
         self.text = text
         self.program = program
         self.program.connect("activeStep_changed", self.on_activeStep_changed)
-
-
-    def _on_activeStep_changed(self, step):
-        self.delete('all')
-        if self.program.displayedStep is None:
-            return
-        step = self.program.steps[self.program.displayedStep]
-        firstDisplayedIndex = self.text.index("@0,0 + 1l")
-        firstDisplayedline = int(firstDisplayedIndex.split('.')[0])
-        _, yDelta, _, ySize = self.text.bbox(firstDisplayedIndex)
-        for lineno, what in step.help.items():
-            creator = CanvasCreator(self, ySize, yDelta)
-            for type_, content in what:
-                creator.feed(type_, content)
-            creator.finish()
-        self['scrollregion'] = 0, 0, canvas_size, 14*len(self.program.source)
 
     def on_activeStep_changed(self, *args):
         self.delete('all')
@@ -80,7 +63,9 @@ class TextHelp(tkinter.Canvas):
             pos = self.text.bbox("%d.0"%(lineno))
             if pos:
                 _, yDelta, _, ySize = pos
-                creator = CanvasCreator(self, ySize, yDelta)
+                xSize =self.canvasx(self.winfo_width())
+                creator = CanvasCreator(self, ySize, yDelta, xSize)
                 for type_, content in what:
                     creator.feed(type_, content)
                 creator.finish()
+
