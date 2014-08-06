@@ -21,6 +21,7 @@ def main():
     program.load_file(fileToLoad)
 
     #Create the gui widgets
+    menuBar = gui.MenuBar(root, program)
     stepChanger = gui.StepChanger(root, program)
     text = gui.TextInput(root, program)
     activeStateShower = gui.ActiveStateShower(root, program)
@@ -29,6 +30,7 @@ def main():
     help = gui.HelpShower(root, program)
 
     #Place them in the rigth order
+    root['menu'] = menuBar
     root.grid_propagate(True)
     stepChanger.grid(row=0, column=0, columnspan=4, sticky="nesw")
     text.grid(row=1, column=0, sticky="nesw")
