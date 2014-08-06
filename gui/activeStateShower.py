@@ -7,8 +7,10 @@ class ActiveStateShower(tkinter.Frame):
         tkinter.Frame.__init__(self, parent, width=100)
         self.propagate(True)
         self.canvas = tkinter.Canvas(self, bg="white")
+        self.canvas['height'] = self.canvas['width']
         self.canvas.pack(side="top")
         self.canvasState = tkinter.ttk.Treeview(self, columns=('value',))
+        self.canvasState['height'] = 1
         self.canvasState.pack()
         self.variables = tkinter.ttk.Treeview(self, columns=('value',))
         self.variables.pack()
