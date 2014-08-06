@@ -54,10 +54,6 @@ class ActiveStateShower(tkinter.Frame):
             token = self.get_current_token(state.namespace)
             for shape in state.shapes:
                 if token in shape.depend():
-                    try:
-                        self.canvas.tkraise(shape.shapeid, 'helpers')
-                    except tkinter.TclError:
-                        pass
                     shape.draw_helper(token, self.canvas)
         else:
             self.canvas.delete('all')
@@ -71,10 +67,6 @@ class ActiveStateShower(tkinter.Frame):
             token = self.get_current_token(state.namespace)
             for shape in state.shapes:
                 shape.update(self.canvas)
-                try:
-                    self.canvas.tkraise(shape.shapeid, 'helpers')
-                except tkinter.TclError:
-                    pass
                 if token in shape.depend():
                     shape.draw_helper(token, self.canvas)
         else:
