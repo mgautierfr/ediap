@@ -59,7 +59,7 @@ class Step:
 class ExtendList(list):
     def __getitem__(self, index):
         if index is None:
-            return Step(None, self[-1].state)
+            return Step(None, list.__getitem__(self,-1).state)
         return list.__getitem__(self, index)
 
 class Program(utils.EventSource):
@@ -112,6 +112,10 @@ class Program(utils.EventSource):
 
     @displayedStep.setter
     def displayedStep(self, value):
+        if value is not None:
+            value = min(value,  len(self.steps)-1)
+            if value == -1:
+                value = None
         self._displayedStep = value
         self.event("activeStep_changed")(value)
 

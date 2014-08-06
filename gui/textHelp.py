@@ -57,6 +57,8 @@ class TextHelp(tkinter.Canvas):
 
     def on_activeStep_changed(self, step):
         self.delete('all')
+        if self.program.displayedStep is None:
+            return
         step = self.program.steps[self.program.displayedStep]
         for lineno, what in step.help.items():
             pos = self.text.bbox("%d.0"%(lineno))

@@ -40,28 +40,35 @@ class StepOutput(tkinter.Frame):
         self.program.connect("steps_changed", self.on_steps_changed)
         self.program.connect("activeStep_changed", self.on_activeStep_changed)
         self.changing = False
+        self.nbSteps = 0
 
     def on_activeStep_changed(self, step):
         if self.oldStep is not None:
             self.steps.itemconfig("step_%d"%self.oldStep, fill="black")
         self.oldStep = self.program.displayedStep
-        if not self.changing:
+        if not self.changing and self.nbSteps:
             self.steps.xview_moveto(max(0, self.oldStep-5)/self.nbSteps)
-        self.steps.itemconfig("step_%d"%self.oldStep , fill="red")
+        if self.oldStep is not None:
+            self.steps.itemconfig("step_%d"%self.oldStep , fill="red")
 
     def on_steps_changed(self, *args):
         self.steps.delete('all')
+        nb = None
         for nb, step in enumerate(self.program.steps):
             pos = self.text.bbox("%d.0"%(step.lineno))
             if pos:
                 id_ = self.steps.create_oval(pos[3]*nb, pos[1], pos[3]*(nb+1), pos[1]+pos[3], fill="black", tags=["step_%d"%nb])
                 self.steps.tag_bind(id_, "<Enter>", get_enter_callback(self, nb))
-        self.nbSteps = nb
-        width = max(self.steps.bbox('all')[2], self.steps.winfo_width()-10)
-        for line in self.program.source:
-            pos = self.text.bbox("%d.0"%(line.lineno))
-            if pos:
-                self.steps.create_line(0, pos[1]+pos[3], width, pos[1]+pos[3])
-        self.steps['scrollregion'] = self.steps.bbox('all')
-        self.steps['xscrollincrement'] = 1.0/nb
+        if nb is None:
+            self.nbSteps = 0
+        else:
+            self.nbSteps = nb + 1
+            width = max(self.steps.bbox('all')[2], self.steps.winfo_width()-10)
+            for line in self.program.source:
+                pos = self.text.bbox("%d.0"%(line.lineno))
+                if pos:
+                    self.steps.create_line(0, pos[1]+pos[3], width, pos[1]+pos[3])
+            self.steps['scrollregion'] = self.steps.bbox('all')
+            if self.nbSteps:
+                self.steps['xscrollincrement'] = 1.0/self.nbSteps
 

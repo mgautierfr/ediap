@@ -196,6 +196,8 @@ class TextInput(tkinter.Text):
     def on_modified(self):
         self.clean_tags()
         for line in self.program.source:
+            if not line:
+                continue
             if line.valid:
                 self.tag_line(line)
             else:
@@ -203,7 +205,10 @@ class TextInput(tkinter.Text):
 
     def on_activeStep_changed(self, step):
         self.tag_remove("highlihgt", "1.0", "end")
-        self.tag_add("highlihgt", "%d.0"%self.program.steps[step].lineno, "%d.0 +1l"%self.program.steps[step].lineno)
+        try:
+            self.tag_add("highlihgt", "%d.0"%self.program.steps[step].lineno, "%d.0 +1l"%self.program.steps[step].lineno)
+        except IndexError:
+            pass
 
     def clean_tags(self):
         [self.tag_remove(n, "1.0", "end") for n in self.tag_names()]

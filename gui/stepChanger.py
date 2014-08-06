@@ -12,14 +12,18 @@ class StepChanger(tkinter.Scale):
         self.activeStep.trace("w", self.showStep)
 
     def on_steps_changed(self):
-        self['to'] = len(self.program.steps)-1
+        if self.program.steps:
+            self['from'] = 1
+            self['to'] = len(self.program.steps)
+        else:
+            self['from'], self['to'] = 0, 0
 
     def on_activeStep_changed(self, step):
         if step is None:
             self.activeStep.set(0)
         else:
-            self.activeStep.set(step)
+            self.activeStep.set(step+1)
 
     def showStep(self, *args):
-        self.program.displayedStep = self.activeStep.get()
+        self.program.displayedStep = self.activeStep.get()-1
 

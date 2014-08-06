@@ -202,13 +202,14 @@ class Interpreter:
     
     def run_prog(self):
         previous_activeStep = self.program.displayedStep
+        last = (previous_activeStep == len(self.program.steps)-1)
         self.program.init_steps()
         try:
             _, state = self.run_level(None, 0, 0)
         except:
             previous_activeStep = len(self.program.steps)-1
         self.program.event("steps_changed")()
-        if previous_activeStep is None or  previous_activeStep >= len(self.program.steps):
+        if previous_activeStep is None or last:
             previous_activeStep = len(self.program.steps)-1
         self.program.displayedStep = previous_activeStep
 
