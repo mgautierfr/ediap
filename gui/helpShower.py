@@ -7,7 +7,6 @@ class HelpShower(tkinter.Label):
         tkinter.Label.__init__(self, parent, textvariable=self.helpv)
         self.program = program
         program.connect("current_changed", self.on_current_changed)
-        program.connect("activeStep_changed", self.on_activeStep_changed)
 
     def on_current_changed(self):
         line, pos = self.program.current
@@ -39,11 +38,3 @@ class HelpShower(tkinter.Label):
             self.helpv.set(functionDef.arguments[index].help)
             return
 
-    def on_activeStep_changed(self,step):
-        help = self.program.steps[self.program.displayedStep].help
-        lineno =  self.program.steps[self.program.displayedStep].lineno
-        self.helpv.set("")
-        try:
-            self.helpv.set(help[lineno])
-        except KeyError:
-            pass
