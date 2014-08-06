@@ -1,0 +1,43 @@
+# We will show you how to display a house
+
+
+# First draw tho background
+change_color(70, 255, 255)
+draw_rectangle(0, 0, 100, 60)
+change_color(0, 245, 0)
+draw_rectangle(0, 60, 100, 40)
+
+
+# Now, the house it self
+# The wall
+define draw_house(var house_x, var house_y, var house_w, var house_h)
+  change_color(195, 0, 0)
+  draw_rectangle(house_x, house_y, house_w, house_h)
+
+  # The rouf
+  change_color(0, 0, 0)
+  draw_quad(house_x+5,house_y-15, house_x-3,house_y, house_x+house_w+3,house_y, house_x+house_w-5,house_y-15)
+
+  # The door
+  change_color(90, 90, 0)
+  draw_rectangle(house_x+house_w/2-4, house_y+house_h-15, 9, 15)
+
+  change_color(255, 255, 255)
+  draw_ellipse(house_x+house_w/2+2, house_y+house_h-7, 2, 2)
+
+  # And window
+  define draw_window(var x, var y)
+    change_color(0, 0 ,255)
+    draw_rectangle(x, y, 9, 9)
+    change_color(255, 255, 245)
+    draw_rectangle(x+1, y+1, 3, 3)
+    draw_rectangle(x+5, y+1, 3, 3)
+    draw_rectangle(x+1, y+5, 3, 3)
+    draw_rectangle(x+5, y+5, 3, 3)
+
+  do draw_window(house_x+6, house_y+2)
+  do draw_window(house_x+house_w-15, house_y+2)
+
+do draw_house(40, 39, 55, 25)
+do draw_house(5, 74, 48, 19)
+
