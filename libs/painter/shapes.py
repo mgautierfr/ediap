@@ -3,7 +3,6 @@ class Shape:
     """Represent a actor"""
     def __init__(self, lineno):
         self.lineno = lineno
-        self.helper = None
 
     def draw(self, canvas):
         pass

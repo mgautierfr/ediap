@@ -34,7 +34,6 @@ class StepOutput(tkinter.Frame):
         self.hScrollbar['command'] = self.steps.xview
         self.steps['yscrollcommand'] = self.vScrollbar.set
         self.steps['xscrollcommand'] = self.hScrollbar.set
-        self.helpers = (None, None)
         self.text = text
         self.program = program
         self.program.connect("steps_changed", self.on_steps_changed)

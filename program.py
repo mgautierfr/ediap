@@ -69,7 +69,6 @@ class Program(utils.EventSource):
         self.source        = []
         self.actors        = []
         self.init_steps()
-        self.helpers       = (None, None)
         self.current       = (None, None)
         self.watchdog      = 1000
         self.fileName      = None
@@ -118,14 +117,6 @@ class Program(utils.EventSource):
                 value = None
         self._displayedStep = value
         self.event("activeStep_changed")(value)
-
-    def show_helper(self, lineno, index):
-        self.helpers = (lineno, index)
-        self.event("activeStep_changed")(self._displayedStep)
-
-    def hide_helpers(self):
-        self.helpers = (None, None)
-        self.event("activeStep_changed")(self._displayedStep)
 
     def set_current(self, current):
         self.current = current
