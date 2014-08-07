@@ -166,8 +166,8 @@ class Interpreter:
                     step.add_help(instruction.lineno, [('text', "create the function %s"%instruction.actor.name.v)])
                     pc = self.pass_level(self.program.actors[pc].level, pc)
                 elif instruction.klass == "functionCall":
-                    state = self.new_state(instruction.lineno, state)
                     step = Step(instruction, state)
+                    state = self.new_state(instruction.lineno, state)
                     step.add_help(instruction.lineno, [('text', "call the function %s..."%instruction.actor.name.v)])
                     self.program.steps.append(step)
                     newState = state.child()
