@@ -12,6 +12,7 @@ def main():
     root = tkinter.Tk()
     from libs import painter
 
+    #import pdb;pdb.set_trace()
     program = Program(painter)
     try:
         fileToLoad = sys.argv[1]
@@ -24,7 +25,8 @@ def main():
     menuBar = gui.MenuBar(root, program)
     stepChanger = gui.StepChanger(root, program)
     text = gui.TextInput(root, program)
-    activeStateShower = gui.ActiveStateShower(root, program)
+    contextShower = painter.ContextShower(root)
+    activeStateShower = gui.ActiveStateShower(root, program, contextShower)
     stepOutput = gui.StepOutput(root, text, program)
     textHelp = gui.TextHelp(root, text, program)
     help = gui.HelpShower(root, program)

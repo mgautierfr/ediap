@@ -3,15 +3,12 @@ import tkinter
 import tkinter.ttk
 
 class ActiveStateShower(tkinter.Frame):
-    def __init__(self, parent, program):
+    def __init__(self, parent, program, contextShower):
         tkinter.Frame.__init__(self, parent, width=100)
         self.propagate(True)
-        self.canvas = tkinter.Canvas(self, bg="white")
-        self.canvas['height'] = self.canvas['width']
-        self.canvas.pack(side="top")
-        self.canvasState = tkinter.ttk.Treeview(self, columns=('value',))
-        self.canvasState['height'] = 1
-        self.canvasState.pack()
+        self.contextShower = contextShower
+        self.contextShower.pack(in_=self)
+        self.contextShower.lift()
         self.variables = tkinter.ttk.Treeview(self, columns=('value',))
         self.variables.pack()
         self.program = program
@@ -50,28 +47,23 @@ class ActiveStateShower(tkinter.Frame):
             return
         state = self.program.steps[self.program.displayedStep].state
         if not self.program.to_many_step():
-            self.canvas.delete('helpers')
+            self.contextShower.delete('helpers')
             token = self.get_current_token(state.namespace)
-            for shape in state.context.shapes:
-                if token in shape.depend():
-                    shape.draw_helper(token, self.canvas)
+            self.contextShower.draw(state.context, token, shape_=None)
         else:
-            self.canvas.delete('all')
+            self.contextShower.delete('all')
 
     def on_token_changed(self):
         if self.program.displayedStep is None:
             return
         state = self.program.steps[self.program.displayedStep].state
         if not self.program.to_many_step():
-            self.canvas.delete('helpers')
+            self.contextShower.delete('helpers')
             token = self.get_current_token(state.namespace)
-            for shape in state.context.shapes:
-                shape.update(self.canvas)
-                if token in shape.depend():
-                    shape.draw_helper(token, self.canvas)
+            self.contextShower.draw(state.context, token, shape_=False)
         else:
-            self.canvas.delete('all')
-        self.update_hiddenstate(state)
+            self.contextShower.delete('all')
+        self.contextShower.update_hiddenstate(state.context)
         self.update_namespace(state)
 
     def update(self, *args):
@@ -79,24 +71,12 @@ class ActiveStateShower(tkinter.Frame):
             return
         state = self.program.steps[self.program.displayedStep].state
         self.idle_handle = None
-        self.canvas.delete('all')
+        self.contextShower.delete('all')
         if not self.program.to_many_step():
             token = self.get_current_token(state.namespace)
-            for shape in state.context.shapes:
-                shape.draw(self.canvas)
-                if token in shape.depend():
-                    shape.draw_helper(token, self.canvas)
-        self.update_hiddenstate(state)
+            self.contextShower.draw(state.context, token, shape_=True)
+        self.contextShower.update_hiddenstate(state.context)
         self.update_namespace(state)
-
-
-    def update_hiddenstate(self, state):
-        for child in self.canvasState.get_children():
-            self.canvasState.delete(child)
-        value = state.context.fillColor()
-        self.canvasState.insert("", "end", "fillColor", text="fillColor", value=value, tags=("fillColor",))
-        self.canvasState.tag_configure("fillColor", background=value, foreground=state.context.fillColor.opositColor)
-
 
     def update_namespace(self, state):
         for child in self.variables.get_children():
