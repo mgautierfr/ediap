@@ -1,6 +1,6 @@
 
 from program import Step
-from language import nodes, objects
+from language import objects
 
 class InvalidIndent(Exception):
     pass
@@ -49,31 +49,26 @@ class NamespaceDict:
         return clone
 
 class State:
-    def __init__(self, lineno):
+    def __init__(self, lineno, context):
         self.lineno = lineno
-        self.shapes = []
-        self.hiddenState = {}
+        self.context = context
         self.namespace = NamespaceDict()
         self.functions = {}
 
     def clone(self, lineno):
-        clone = State(lineno)
-        clone.shapes = self.shapes[:]
-        clone.hiddenState = dict(self.hiddenState)
+        clone = State(lineno, self.context.__class__(self.context))
         clone.namespace = self.namespace.clone()
         clone.functions = dict(self.functions)
         return clone
 
     def child(self):
-        child = State(self.lineno)
-        child.shapes = self.shapes
-        child.hiddenState = self.hiddenState
+        child = State(self.lineno, self.context)
         child.namespace = NamespaceDict(self.namespace)
         child.functions = dict(self.functions)
         return child
 
     def __str__(self):
-        return "<State %d\n%s\n%s\n%s\n>"%(self.lineno,self.shapes, self.hiddenState, self.namespace)
+        return "<State %d\n%s\n%s\n>"%(self.lineno,self.context, self.namespace)
 
 class Interpreter:
     def __init__(self, program):
@@ -83,9 +78,8 @@ class Interpreter:
 
     def new_state(self, lineno, state):
         if not state:
-            state = State(lineno)
-            state.hiddenState.update({'fillColor' : nodes.Value("#000000")})
-            state.hiddenState['fillColor'].opositColor = "#FFFFFF"
+            newContext = self.program.lib.Context()
+            state = State(lineno, newContext)
         else:
             state = state.clone(lineno)
         return state
@@ -228,8 +222,7 @@ class Interpreter:
         step.add_help(self.program.source[functionDef.pc].lineno, [('text', "... so go here")])
         _, state_ = self.run(functionDef.pc, newState)
         #Update our final state with data return from subprogram
-        state.hiddenState = state_.hiddenState
-        state.shapes = state_.shapes
+        state.context = state_.context
         state.namespace = state_.namespace.parent
         step = Step(instruction, state)
         step.add_help(instruction.lineno, [('text', "returning from function %s"%instruction.parsed.name.v)])

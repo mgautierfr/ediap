@@ -48,7 +48,7 @@ class draw_rectangle:
         self.x, self.y, self.w, self.h = (t.get_node(state.namespace) for t in (x, y, w, h))
 
     def act(self):
-        self.state.shapes.append(_shapes.Rectangle(self.state.lineno, self.x, self.y, self.w, self.h, self.state.hiddenState['fillColor']))
+        self.state.context.shapes.append(_shapes.Rectangle(self.state.lineno, self.x, self.y, self.w, self.h, self.state.context.fillColor))
 
     def get_help(self):
         return [('text' , "Draw a "),
@@ -66,7 +66,7 @@ class draw_ellipse(draw_rectangle):
                 ]
 
     def act(self):
-        self.state.shapes.append(_shapes.Ellipse(self.state.lineno, self.x, self.y, self.w, self.h, self.state.hiddenState['fillColor']))
+        self.state.context.shapes.append(_shapes.Ellipse(self.state.lineno, self.x, self.y, self.w, self.h, self.state.context.fillColor))
 
     def get_help(self):
         return [('text' , "Draw a "),
@@ -103,7 +103,7 @@ class draw_quad(_polygon):
         self.p3 = self.update_coord((x3, y3), state)
 
     def act(self):
-        self.state.shapes.append(_shapes.Polygon(self.state.lineno, self.state.hiddenState['fillColor'], (self.p0+self.p1+self.p2+self.p3)))
+        self.state.context.shapes.append(_shapes.Polygon(self.state.lineno, self.state.context.fillColor, (self.p0+self.p1+self.p2+self.p3)))
 
     def get_help(self):
         namespace = self.state.namespace
@@ -133,7 +133,7 @@ class draw_triangle(_polygon):
         self.p2 = self.update_coord((x2, y2), state)
 
     def act(self):
-        self.state.shapes.append(_shapes.Polygon(self.state.lineno, self.state.hiddenState['fillColor'], (self.p0+self.p1+self.p2)))
+        self.state.context.shapes.append(_shapes.Polygon(self.state.lineno, self.state.context.fillColor, (self.p0+self.p1+self.p2)))
 
     def get_help(self):
         namespace = self.state.namespace
@@ -158,7 +158,7 @@ class change_color:
         self.r, self.v, self.b = (token.get_node(state.namespace) for token in (r, v, b))
 
     def act(self):
-        self.state.hiddenState['fillColor'] = _ColorNode(self.r, self.v, self.b)
+        self.state.context.fillColor = _ColorNode(self.r, self.v, self.b)
 
     def get_help(self):
         r, v, b = (min(max(c(), 0), 255) for c in (self.r,self.v,self.b))

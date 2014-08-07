@@ -52,7 +52,7 @@ class ActiveStateShower(tkinter.Frame):
         if not self.program.to_many_step():
             self.canvas.delete('helpers')
             token = self.get_current_token(state.namespace)
-            for shape in state.shapes:
+            for shape in state.context.shapes:
                 if token in shape.depend():
                     shape.draw_helper(token, self.canvas)
         else:
@@ -65,7 +65,7 @@ class ActiveStateShower(tkinter.Frame):
         if not self.program.to_many_step():
             self.canvas.delete('helpers')
             token = self.get_current_token(state.namespace)
-            for shape in state.shapes:
+            for shape in state.context.shapes:
                 shape.update(self.canvas)
                 if token in shape.depend():
                     shape.draw_helper(token, self.canvas)
@@ -82,7 +82,7 @@ class ActiveStateShower(tkinter.Frame):
         self.canvas.delete('all')
         if not self.program.to_many_step():
             token = self.get_current_token(state.namespace)
-            for shape in state.shapes:
+            for shape in state.context.shapes:
                 shape.draw(self.canvas)
                 if token in shape.depend():
                     shape.draw_helper(token, self.canvas)
@@ -93,11 +93,9 @@ class ActiveStateShower(tkinter.Frame):
     def update_hiddenstate(self, state):
         for child in self.canvasState.get_children():
             self.canvasState.delete(child)
-        for key in sorted(state.hiddenState.keys()):
-            value = state.hiddenState[key]()
-            self.canvasState.insert("", "end", key, text=key, value=value, tags=(key,))
-            if key == "fillColor":
-                self.canvasState.tag_configure("fillColor", background=value, foreground=state.hiddenState[key].opositColor)
+        value = state.context.fillColor()
+        self.canvasState.insert("", "end", "fillColor", text="fillColor", value=value, tags=("fillColor",))
+        self.canvasState.tag_configure("fillColor", background=value, foreground=state.context.fillColor.opositColor)
 
 
     def update_namespace(self, state):
