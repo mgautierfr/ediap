@@ -10,7 +10,7 @@ draw_rectangle(0, 60, 100, 40)
 
 # Now, the house it self
 # The wall
-create function draw_house(var house_x, var house_y, var house_w, var house_h)
+create subprogram draw_house(var house_x, var house_y, var house_w, var house_h)
   change_color(195, 0, 0)
   draw_rectangle(house_x, house_y, house_w, house_h)
 
@@ -26,7 +26,7 @@ create function draw_house(var house_x, var house_y, var house_w, var house_h)
   draw_ellipse(house_x+house_w/2+2, house_y+house_h-7, 2, 2)
 
   # And window
-  create function draw_window(var x, var y)
+  create subprogram draw_window(var x, var y)
     change_color(0, 0 ,255)
     draw_rectangle(x, y, 9, 9)
     change_color(255, 255, 245)

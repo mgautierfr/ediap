@@ -154,7 +154,7 @@ def var_declaration():
 def functionstmt():
     special('create')
     whitespace1()
-    special('function')
+    special('subprogram')
     name = identifier()
     special('(')
     arguments = sep(argument_def, p(special, ','))

@@ -1,11 +1,11 @@
 #Ceci est une fonction qui dessine une maison
-create function house(var x, var y, var w, var h)
+create subprogram house(var x, var y, var w, var h)
   create var ratio
   ratio = 0.3
   draw_triangle(x,y+h*ratio, x+w,y+h*ratio, x+w/2,y)
   draw_rectangle(x, y+h*ratio, w, h*(1-ratio))
 
-create function test(var a, var b)
+create subprogram test(var a, var b)
   draw_ellipse(x*a, b, 10, 10)
   x = 5
   draw_ellipse(x*a, b+10, 10, 10)
