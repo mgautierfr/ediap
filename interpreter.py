@@ -115,19 +115,22 @@ class Interpreter:
             else:
                 self.valid = False
 
-    def pass_level(self, level, pc):
+    def pass_level(self, pc):
+        level = self.program.actors[pc].level
         while pc < len(self.program.actors) and self.program.actors[pc].level >= level:
             pc += 1
         return pc
 
-    def set_help_run_level(self, level, pc, step):
+    def set_help_run_level(self, pc, step):
+        level = self.program.actors[pc].level
         text = "Do this..."
         while pc < len(self.program.actors) and self.program.actors[pc].level >= level:
             step.add_help(self.program.actors[pc].lineno, [('text', text)])
             text = "... and this"
             pc += 1
 
-    def run_level(self, state, level, pc):
+    def run_level(self, state, pc):
+        level = self.program.actors[pc].level
         while pc < len(self.program.actors):
             instruction = self.program.actors[pc]
             if instruction.level < level:
@@ -142,8 +145,8 @@ class Interpreter:
                     self.program.steps.append(step)
                     while result:
                         step.add_help(instruction.lineno, [('text', "cause %s is true..."%instruction.actor.get_help_text(state))])
-                        self.set_help_run_level(self.program.actors[pc].level, pc, step)
-                        pc_, state = self.run_level(state, self.program.actors[pc].level, pc)
+                        self.set_help_run_level(pc, step)
+                        pc_, state = self.run_level(state, pc)
                         if instruction.klass == "_if":
                             pc = pc_
                             break
@@ -152,7 +155,7 @@ class Interpreter:
                         self.program.steps.append(step)
                     else:
                         step.add_help(instruction.lineno, [('text', "cause %s is false..."%instruction.actor.get_help_text(state))])
-                        pc = self.pass_level(self.program.actors[pc].level, pc)
+                        pc = self.pass_level(pc)
                         try:
                             step.add_help(self.program.actors[pc].lineno, [('text', "... go here")])
                         except IndexError:
@@ -164,7 +167,7 @@ class Interpreter:
                     step = Step(instruction, state)
                     self.program.steps.append(step)
                     step.add_help(instruction.lineno, [('text', "create the function %s"%instruction.actor.name.v)])
-                    pc = self.pass_level(self.program.actors[pc].level, pc)
+                    pc = self.pass_level(pc)
                 elif instruction.klass == "functionCall":
                     step = Step(instruction, state)
                     state = self.new_state(instruction.lineno, state)
@@ -174,7 +177,7 @@ class Interpreter:
                     instruction.actor(newState)
                     pc_ = newState.functions[instruction.actor.name.v].pc
                     step.add_help(self.program.actors[pc_].lineno, [('text', "... so go here")])
-                    _, state_ = self.run_level(newState, self.program.actors[pc_].level, pc_)
+                    _, state_ = self.run_level(newState, pc_)
                     state.hiddenState = state_.hiddenState
                     state.shapes = state_.shapes
                     state.namespace = state_.namespace.parent
@@ -205,7 +208,7 @@ class Interpreter:
         last = (previous_activeStep == len(self.program.steps)-1)
         self.program.init_steps()
         try:
-            _, state = self.run_level(None, 0, 0)
+            _, state = self.run_level(None, 0)
         except:
             previous_activeStep = len(self.program.steps)-1
         self.program.event("steps_changed")()
