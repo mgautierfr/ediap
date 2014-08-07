@@ -123,7 +123,7 @@ def functioncall():
     special('(')
     arguments = sep(expr, p(special, ','))
     special(')')
-    return instructions.Call(name, arguments)
+    return instructions.Do_subprogram(name, arguments)
 
 @tri
 def builtincall():
@@ -148,7 +148,7 @@ def var_declaration():
     type_ = variable_type()
     whitespace1()
     name = identifier()
-    return instructions.Use(type_ , name)
+    return instructions.Create(type_ , name)
 
 @tri
 def functionstmt():
@@ -159,14 +159,14 @@ def functionstmt():
     special('(')
     arguments = sep(argument_def, p(special, ','))
     special(')')
-    return instructions.FunctionDef(name, arguments)
+    return instructions.Create_subprogram(name, arguments)
 
 @tri
 def assignement():
     name = identifier()
     special('=')
     value = expr()
-    return instructions.Assignement(name, value)
+    return instructions.Set(name, value)
 
 @tri
 def ifstmt():

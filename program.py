@@ -8,40 +8,35 @@ class Line:
         self.lineno = lineno
         self.update_text(lineText)
 
-    @property
-    def valid(self):
-        return self.parsed is not None
-
     def update_text(self, text):
         self.text = text
-        self.level = grammar.get_level(text)
-        try:
-            self.parsed = grammar.parse_instruction(self.text)
-        except NoMatch:
-            self.parsed = None
+        self.empty = not bool(self.text) or self.text.isspace()
+        self.level = None
+        self.parsed = None
+        if not self.empty:
+            self.level = grammar.get_level(text)
+            try:
+                self.parsed = grammar.parse_instruction(self.text)
+            except NoMatch:
+                self.parsed = None
 
     def __bool__(self):
-        return bool(self.text) and not self.text.isspace()
+        raise NotImplemented
 
     def __str__(self):
         return self.text
 
-class Instruction:
-    def __init__(self, line, actor):
-        self.line = line
-        self.actor = actor
-
     @property
-    def lineno(self):
-        return self.line.lineno
-
-    @property
-    def level(self):
-        return self.line.level
+    def is_nop(self):
+        if self.parsed is None:
+            return True
+        return self.parsed.is_nop
 
     @property
     def klass(self):
-        return self.actor.klass
+        if self.parsed is None:
+            return None
+        return self.parsed.klass
 
 class Step:
     def __init__(self, instruction, state):
@@ -67,7 +62,6 @@ class Program(utils.EventSource):
         utils.EventSource.__init__(self)
         self.lib = lib
         self.source        = []
-        self.actors        = []
         self.init_steps()
         self.current       = (None, None)
         self.watchdog      = 1000

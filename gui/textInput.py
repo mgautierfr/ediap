@@ -201,9 +201,9 @@ class TextInput(tkinter.Text):
     def on_modified(self):
         self.clean_tags()
         for line in self.program.source:
-            if not line:
+            if line.empty:
                 continue
-            if line.valid:
+            if line.parsed is not None:
                 self.tag_line(line)
             else:
                 self.tag_add("invalidSyntax", "%d.%d"%(line.lineno, line.level), "%d.0 lineend"%line.lineno)
