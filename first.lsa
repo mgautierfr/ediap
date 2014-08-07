@@ -32,6 +32,8 @@ change_color(0, 255, 0)
 draw_quad(50,10, 50,20, 60,20, 60,10)
 
 change_color(0, 255, 255)
+if x == 5
+  change_color(0, 255, 0)
 x = 0
 while x < 3
   draw_rectangle(50+10*x, 25+2*x, 10, 10)
@@ -45,4 +47,3 @@ while x < 10
     draw_rectangle(50+5*x, 50+5*y, 3, 3)
     y = y + 1
   x = x + 1
-
