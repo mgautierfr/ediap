@@ -54,7 +54,12 @@ def main():
         textHelp.on_activeStep_changed()
         stepOutput.on_steps_changed()
 
-    text['yscrollcommand'] = vScrollbar.set
+    def proxy_set(*args, **kwords):
+        vScrollbar.set(*args, **kwords)
+        textHelp.on_activeStep_changed()
+        stepOutput.on_steps_changed()
+
+    text['yscrollcommand'] = proxy_set
     vScrollbar['command'] = proxy_yview
 
     # create the interpretor and go, go, go
