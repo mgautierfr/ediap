@@ -1,17 +1,17 @@
 #Ceci est une fonction qui dessine une maison
-define house(var x, var y, var w, var h)
-  use var ratio
+create function house(var x, var y, var w, var h)
+  create var ratio
   ratio = 0.3
   draw_triangle(x,y+h*ratio, x+w,y+h*ratio, x+w/2,y)
   draw_rectangle(x, y+h*ratio, w, h*(1-ratio))
 
-define test(var a, var b)
+create function test(var a, var b)
   draw_ellipse(x*a, b, 10, 10)
   x = 5
   draw_ellipse(x*a, b+10, 10, 10)
 
-use var x
-use var y
+create var x
+create var y
 
 # On attribue 1 la variable x
 

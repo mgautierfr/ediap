@@ -15,6 +15,8 @@ class Token:
     def get_token_at_pos(self, pos):
         return None
 
+
+
 class Value(Token):
     def __init__(self, value, start, end):
         Token.__init__(self, start, end)
@@ -29,6 +31,14 @@ class Value(Token):
 
     def get_help_text(self, namespace):
         return self.v
+
+class VarType(Token):
+    def  __init__(self, type_, start, end):
+        Token.__init__(self, start, end)
+        self.v = type_
+
+    def get_token_at_pos(self, pos):
+        return self
 
 class Int(Value):
     pass
@@ -87,3 +97,4 @@ class BinaryOp(Token):
 
     def get_help_text(self, namespace):
         return "%s %s %s"%(self.x.get_help_text(namespace), self.name.v, self.y.get_help_text(namespace))
+

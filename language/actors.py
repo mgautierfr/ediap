@@ -57,7 +57,7 @@ class functionDef(Actor):
         self.args = args
 
     def __call__(self, state):
-        state.functions[self.name.v] = objects.FunctionDefinition(self.name.v, [(t, a.v) for t,a in self.args])
+        state.functions[self.name.v] = objects.FunctionDefinition(self.name.v, [(t.v, a.v) for t,a in self.args])
 
 class functionCall(Actor):
     def __init__(self, level, name, args):

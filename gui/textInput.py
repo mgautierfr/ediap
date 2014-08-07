@@ -65,19 +65,20 @@ class LineTagger:
 
     def tag_If(self, instruction):
         start_index = "%d.%d"%(self.lineno, instruction.level)
-        end_index = "%s + 2c"%(start_index)
+        end_index = "%s + %sc"%(start_index, len("if"))
         self.text.tag_add("keyword", start_index, end_index)
         self.tag(instruction.test)
 
     def tag_While(self, instruction):
         start_index = "%d.%d"%(self.lineno, instruction.level)
-        end_index = "%s + 5c"%(start_index)
+        end_index = "%s + %dc"%(start_index, len("while"))
         self.text.tag_add("keyword", start_index, end_index)
         self.tag(instruction.test)
 
     def tag_FunctionDef(self, instruction):
         start_index = "%d.%d"%(self.lineno, instruction.level)
-        end_index = "%s + 6c"%(start_index)
+        end_index = "%d.%d"%(self.lineno, instruction.name.start)
+        #end_index = "%s + %dc"%(instruction.name.start, len("create"))
         self.text.tag_add("keyword", start_index, end_index)
         for (type_, arg) in instruction.args:
             tag_name = "%s_decl"%(arg.v)
@@ -90,7 +91,10 @@ class LineTagger:
 
     def tag_Use(self, instruction):
         start_index = "%d.%d"%(self.lineno, instruction.level)
-        end_index = "%s + 3c"%(start_index)
+        end_index = "%s + %dc"%(start_index, len("create"))
+        self.text.tag_add("keyword", start_index, end_index)
+        start_index = "%d.%d"%(self.lineno, instruction.type_.start)
+        end_index = "%d.%d"%(self.lineno, instruction.type_.end)
         self.text.tag_add("keyword", start_index, end_index)
         tag_name = "%s_decl"%(instruction.name.v)
         start_index = "%d.%d"%(self.lineno, instruction.name.start)

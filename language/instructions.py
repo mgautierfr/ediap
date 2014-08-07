@@ -22,7 +22,7 @@ class Use(Instruction):
         self.name = name
 
     def __call__(self):
-        return actors.var_creator(self.level, self.type_, self.name.v)
+        return actors.var_creator(self.level, self.type_.v, self.name.v)
 
 
 class Assignement(Instruction):
