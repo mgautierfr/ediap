@@ -14,14 +14,14 @@ class LineTagger:
         if sub_executor:
             return sub_executor(node)
 
-    def tag_Assignement(self, node):
+    def tag_Set(self, node):
         tag_name = "%s_assign"%(node.name.v)
         start_index = "%d.%d"%(self.lineno, node.name.start)
         end_index = "%d.%d"%(self.lineno, node.name.end)
         self.text.tag_add(tag_name, start_index, end_index)
         self.tag(node.value)
 
-    def tag_Call(self, node):
+    def tag_Do_subprogram(self, node):
         start_index = "%d.%d"%(self.lineno, node.level)
         end_index = "%s + 2c"%(start_index)
         self.text.tag_add("keyword", start_index, end_index)
@@ -75,7 +75,7 @@ class LineTagger:
         self.text.tag_add("keyword", start_index, end_index)
         self.tag(instruction.test)
 
-    def tag_FunctionDef(self, instruction):
+    def tag_Create_subprogram(self, instruction):
         start_index = "%d.%d"%(self.lineno, instruction.level)
         end_index = "%d.%d"%(self.lineno, instruction.name.start)
         #end_index = "%s + %dc"%(instruction.name.start, len("create"))
@@ -89,7 +89,7 @@ class LineTagger:
     def tag_Comment(self, instruction):
         self.text.tag_add("comment", "%d.0"%self.lineno, "%d.0 lineend"%self.lineno)
 
-    def tag_Use(self, instruction):
+    def tag_Create(self, instruction):
         start_index = "%d.%d"%(self.lineno, instruction.level)
         end_index = "%s + %dc"%(start_index, len("create"))
         self.text.tag_add("keyword", start_index, end_index)
