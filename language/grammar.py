@@ -1,3 +1,20 @@
+# This file is part of Edia.
+#
+# Ediap is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# Edia is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Edia.  If not, see <http://www.gnu.org/licenses/>
+
+# Copyright 2014 Matthieu Gautier dev@mgautier.fr
+
 from picoparse import choice, p, one_of, many, many1, tri, eof, not_followed_by, satisfies, string, commit, optional, sep1, sep, desc, not_one_of, compose, EndOfFile
 from picoparse.text import run_text_parser, newline
 
