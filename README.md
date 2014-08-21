@@ -1,7 +1,7 @@
 EDIAP
 =====
 
-EDIAP is for "Environnement de Développement intégré pour APrentissage".
+EDIAP is for "Environnement de Développement Intégré pour l’Apprentissage de la Programmation".
 This is french and it means "IDE for learning"
 
 So what is EDIAP ?
