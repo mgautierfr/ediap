@@ -32,7 +32,7 @@ For now, there are two sample files : first.lsa and house.lsa
 The UI
 ------
 
-![A screenshot of the application](screenshot_house_annoted.png "A screenshot of the application")
+![A screenshot of the application](screenshot_house_annoted.png?raw=true "A screenshot of the application")
 
 
 1. This is were the code source is.
