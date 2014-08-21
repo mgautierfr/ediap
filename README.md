@@ -20,9 +20,9 @@ EDIAP depends of picoparse.
 First launch
 ------------
 
-Just go :
+Just go on :
 
-$ ./ediap.py <inputfile.lsa>
+$ ./ediap.py \<inputfile.lsa>
 
 If no input file is specified, EDIAP open first.lsa by default.
 
