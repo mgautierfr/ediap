@@ -15,6 +15,7 @@ Dependency
 ----------
 
 EDIAP depends of picoparse.
+You can find a python3 version [here](https://github.com/mgautierfr/picoparse/tree/python3)
 
 
 First launch
