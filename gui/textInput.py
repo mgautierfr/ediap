@@ -16,6 +16,7 @@
 # Copyright 2014 Matthieu Gautier dev@mgautier.fr
 
 import tkinter, tkinter.font
+import re
 
 def int_scale(value, neg):
     return value + (1-2*neg)
@@ -91,6 +92,16 @@ class LineTagger:
         end_index = "%s + %dc"%(start_index, len("while"))
         self.text.tag_add("keyword", start_index, end_index)
         self.tag(instruction.test)
+
+    def tag_Loop(self, instruction):
+        start_index = "%d.%d"%(self.lineno, instruction.level)
+        end_index = "%s + %dc"%(start_index, len("loop"))
+        self.text.tag_add("keyword", start_index, end_index)
+        match = re.search(r"times", self.textValue)
+        start_index = "%d.%d"%(self.lineno, match.start())
+        end_index = "%d.%d"%(self.lineno, match.end())
+        self.text.tag_add("keyword", start_index, end_index)
+        self.tag(instruction.value)
 
     def tag_Create_subprogram(self, instruction):
         start_index = "%d.%d"%(self.lineno, instruction.level)
