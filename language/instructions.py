@@ -58,6 +58,15 @@ class If(Instruction):
 class While(If):
     pass
 
+class Loop(Instruction):
+    def __init__(self, value):
+        self.value = value
+
+    def get_token_at_pos(self, pos):
+        if self.value.start <= pos <= self.value.end:
+            return self.value.get_token_at_pos(pos)
+        return None
+
 
 class Create_subprogram(Instruction):
     def __init__(self, name, args):

@@ -24,7 +24,7 @@ from picoparse import pos as _pos
 from .tokens import *
 from . import instructions
 
-reserved_words = ['if', 'while', 'do', 'create']
+reserved_words = ['if', 'while', 'loop', 'times', 'do', 'create']
 variable_types = ['var']
 binary_operator_chars = ['+', '-', '/', '*', '==', '<', '>', '!=', '<=', '>=']
 
@@ -197,6 +197,13 @@ def whilestmt():
     test = expr()
     return instructions.While(test)
 
+@tri
+def loopstmt():
+    special('loop')
+    test = term()
+    special('times')
+    return instructions.Loop(test)
+
 
 def argument_def():
     type_ = variable_type()
@@ -211,7 +218,7 @@ def comment():
     return instructions.Comment(text)
 
 def part():
-    expr = choice(comment, var_declaration, functionstmt, functioncall, builtincall, assignement, ifstmt, whilestmt)
+    expr = choice(comment, var_declaration, functionstmt, functioncall, builtincall, assignement, ifstmt, whilestmt, loopstmt)
     eof()
     return expr
 

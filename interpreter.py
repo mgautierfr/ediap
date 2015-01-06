@@ -209,6 +209,27 @@ class Interpreter:
                 pass
         return pc, state
 
+    def do_loop(self, instruction, pc, state):
+        step = Step(instruction, state)
+        self.program.steps.append(step)
+        nbLoop_node = instruction.parsed.value.get_node(state.namespace)
+        nbLoop = nbLoop_node()
+        i = 0
+        for i in range(nbLoop):
+            step.add_help(instruction.lineno, [('text', "Current loop %d < %s so ..."%(i, instruction.parsed.value.get_help_text(state.namespace)))])
+            self.set_help_run_level(pc+1, step)
+            pc_, state = self.run(pc+1, state)
+            step = Step(instruction, state)
+            self.program.steps.append(step)
+        else:
+            step.add_help(instruction.lineno, [('text', "Current loop %d = %s so ..."%(i+1, instruction.parsed.value.get_help_text(state.namespace)))])
+            pc = self.pass_level(pc+1)
+            try:
+                step.add_help(self.program.source[pc].lineno, [('text', "... go here")])
+            except IndexError:
+                pass
+        return pc, state
+
     def do_create_subprogram(self, instruction, pc, state):
         state = self.new_state(instruction.lineno, state)
         state.functions[instruction.parsed.name.v] = objects.FunctionDefinition(instruction.parsed.name.v, [(t.v, a.v) for t,a in instruction.parsed.args])
@@ -295,6 +316,7 @@ class Interpreter:
     instruction_mapping = {
      'If'                : do_if,
      'While'             : do_while,
+     'Loop'              : do_loop,
      'Create_subprogram' : do_create_subprogram,
      'Do_subprogram'     : do_do_subprogram,
      'Create'            : do_create,
