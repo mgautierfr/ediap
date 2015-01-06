@@ -21,9 +21,10 @@ def int_scale(value, neg):
     return value + (1-2*neg)
 
 class LineTagger:
-    def __init__(self, text, lineno):
+    def __init__(self, text, lineno, textValue):
         self.text = text
         self.lineno = lineno
+        self.textValue = textValue
 
     def tag(self, node):
         sub_executor = getattr(self, "tag_%s"%node.klass, None)
@@ -235,5 +236,5 @@ class TextInput(tkinter.Text):
         [self.tag_remove(n, "1.0", "end") for n in self.tag_names()]
 
     def tag_line(self, line):
-        LineTagger(self, line.lineno).tag(line.parsed)
+        LineTagger(self, line.lineno, line.text).tag(line.parsed)
 
