@@ -35,14 +35,14 @@ change_color(0, 255, 255)
 if x == 5
   change_color(0, 255, 0)
 x = 0
-while x < 3
+loop 3 times
   draw_rectangle(50+10*x, 25+2*x, 10, 10)
   x = x + 1
 
 x=0
 while x < 10
   y = 0
-  while y < 5
+  loop x times
     change_color(25*x, 50*y, 0)
     draw_rectangle(50+5*x, 50+5*y, 3, 3)
     y = y + 1
