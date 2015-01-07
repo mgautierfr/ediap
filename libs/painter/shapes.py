@@ -123,7 +123,7 @@ class Rectangle(Shape):
         return x0, y0, x1, y1
 
     def draw(self, canvas):
-        self.shapeid = canvas.create_rectangle(*self.get_coords(canvas), fill=self.fillColor())
+        self.shapeid = canvas.create_rectangle(*self.get_coords(canvas), fill=self.fillColor(), outline=self.fillColor())
 
     def update(self, canvas):
         canvas.coords(self.shapeid, *self.get_coords(canvas))
@@ -162,7 +162,7 @@ class Rectangle(Shape):
 
 class Ellipse(Rectangle):
     def draw(self, canvas):
-        self.shapeid = canvas.create_oval(*self.get_coords(canvas), fill=self.fillColor())
+        self.shapeid = canvas.create_oval(*self.get_coords(canvas), fill=self.fillColor(), outline=self.fillColor())
 
     def get_x_helper_coords(self, canvas):
         x0, y0, x1, y1 = self.get_coords(canvas)
