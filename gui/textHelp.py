@@ -52,6 +52,8 @@ class CanvasCreator:
         elif type_=="color":
             self.elements.append(self.canvas.create_rectangle(0, 0, self.ySize*1.5, self.ySize, fill=content))
         elif type_=="shape":
+            if content == "line":
+                self.elements.append(self.canvas.create_line(0, 0, self.ySize*1.5, self.ySize))
             if content == "rectangle":
                 self.elements.append(self.canvas.create_rectangle(0, 0, self.ySize*1.5, self.ySize))
             elif content=="ellipse":

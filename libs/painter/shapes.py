@@ -26,6 +26,44 @@ class Shape:
     def draw_helper(self, index, canvas):
         pass
 
+class Line(Shape):
+    def __init__(self, lineno, fillColor, width, coords):
+        Shape.__init__(self, lineno)
+        self.fillColor = fillColor
+        self.width = width
+        self.coords = coords
+
+    def depend(self):
+        return self.fillColor.depend().union(*[c.depend() for c in self.coords])
+
+    def draw(self, canvas):
+        coords = (c()*(canvas.winfo_height() if i%2 else canvas.winfo_width()) for i,c in enumerate(self.coords))
+        coords = [c/100 for c in coords]
+        self.shapeid = canvas.create_line(*coords, fill=self.fillColor(), width=self.width())
+
+    def update(self, canvas):
+        coords = (c()*(canvas.winfo_height() if i%2 else canvas.winfo_width()) for i, c in enumerate(self.coords))
+        coords = [c/100 for c in coords]
+        canvas.coords(self.shapeid, *coords)
+        canvas.itemconfig(self.shapeid, fill=self.fillColor(), width=self.width())
+
+    def draw_helper(self, token, canvas):
+        for index, coord in enumerate(self.coords):
+            if token in coord.depend():
+                if index%2:
+                    coords = self.get_y_helper_coords(self.coords[index-1], self.coords[index], canvas)
+                else:
+                    coords = self.get_x_helper_coords(self.coords[index], self.coords[index+1], canvas)
+                canvas.create_line(*coords, fill="red", tags="helpers")
+
+    def get_x_helper_coords(self, x, y, canvas):
+        y = y()*canvas.winfo_height()/100
+        return 0, y, x()*canvas.winfo_width()/100, y
+
+    def get_y_helper_coords(self, x, y, canvas):
+        x = x()*canvas.winfo_width()/100
+        return x, 0, x, y()*canvas.winfo_height()/100
+
 class Polygon(Shape):
     def __init__(self, lineno, fillColor, coords):
         Shape.__init__(self, lineno)

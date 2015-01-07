@@ -18,7 +18,7 @@
 from . import shapes as _shapes
 from language import nodes as _nodes
 
-__all__ = ['draw_rectangle', 'draw_ellipse', 'draw_quad', 'draw_triangle' , 'change_color']
+__all__ = ['draw_line', 'draw_rectangle', 'draw_ellipse', 'draw_quad', 'draw_triangle' , 'change_color']
 
 class _ColorNode(_nodes.Node):
     def __init__(self, r, v, b):
@@ -51,6 +51,30 @@ class _IntArgument:
         if self.stop is not None:
             value = min(self.stop, value)
         return value
+
+class draw_line:
+    help = "Draw a line"
+    arguments = [_IntArgument("x position of the first point"),
+                 _IntArgument("y position of the first point"),
+                 _IntArgument("x position of the second point"),
+                 _IntArgument("y position of the second point"),
+                 _IntArgument("width of the line")
+                ]
+
+    def __init__(self, state, x1, y1, x2, y2, w):
+        self.state = state
+        self.x1, self.y1, self.x2, self.y2 = (t.get_node(state.namespace) for t in (x1, y1, x2, y2))
+        self.w = w.get_node(state.namespace)
+
+    def act(self):
+        self.state.context.shapes.append(_shapes.Line(self.state.lineno, self.state.context.fillColor, self.w, (self.x1, self.y1, self.x2, self.y2)))
+
+    def get_help(self):
+        return [('text' , "Draw a "),
+                ('shape', 'line'),
+                ('text' , " from %sx%s"%(self.x1(),self.y1())),
+                ('text' , " to %sx%s"%(self.x2(), self.y2()))
+               ]
 
 class draw_rectangle:
     help = "Draw a rectangle"
