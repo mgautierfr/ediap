@@ -218,7 +218,7 @@ def comment():
     return instructions.Comment(text)
 
 def part():
-    expr = choice(comment, var_declaration, functionstmt, functioncall, builtincall, assignement, ifstmt, whilestmt, loopstmt)
+    expr = choice(comment, var_declaration, functionstmt, functioncall, builtincall, assignement, ifstmt, loopstmt)
     eof()
     return expr
 

@@ -40,7 +40,7 @@ loop 3 times
   x = x + 1
 
 x=0
-while x < 10
+loop 10 times
   y = 0
   loop x times
     change_color(25*x, 50*y, 0)
