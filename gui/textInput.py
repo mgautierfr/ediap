@@ -209,6 +209,10 @@ class TextInput(tkinter.Text):
         self.edit_modified(False)
         self.bind("<<Modified>>", self.on_textModified)
         self.bind("<Motion>", self.on_motion)
+        self.bind("<FocusIn>", self.on_focus)
+
+    def on_focus(self, event):
+        self.program.displayedStep =  len(self.program.steps)
 
     def on_motion(self, event):
         current = self.index("current")
@@ -219,6 +223,7 @@ class TextInput(tkinter.Text):
         if not self.edit_modified():
             return
         self.edit_modified(False)
+        self.program.displayedStep =  len(self.program.steps)
         if not self.textModifier.changing:
             lines = self.get("1.0", "end").split("\n")
             for lineno, line in enumerate(lines):
