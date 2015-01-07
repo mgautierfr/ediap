@@ -1,0 +1,35 @@
+# Now create a castle
+
+
+create subprogram tower(var x, var w)
+  # create a tower
+  create var middle
+  middle = w/2
+  change_color(50, 50, 50)
+  draw_rectangle(x, 60, w, 40)
+  change_color(255, 0, 0)
+  draw_triangle(x, 60, w+x, 60, middle+x, 50)
+
+
+  # add a flag
+  change_color(0, 0, 0)
+  draw_line(x+middle, 51, x+middle, 35, 3)
+  change_color(255, 255, 0)
+  draw_triangle(x+middle, 44, x+middle, 36, x+middle+20, 40)
+
+do tower(3, 10)
+do tower(73, 10)
+
+change_color(100, 100, 100)
+draw_rectangle(13, 75, 60, 25)
+
+create var index
+index = 0
+loop 7 times
+   draw_rectangle(16+(index*8), 70, 5, 5)
+   index = index + 1
+
+
+change_color(255, 255, 255)
+draw_rectangle(30, 86, 16, 14)
+draw_ellipse(30, 79, 16, 16)
