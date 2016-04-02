@@ -46,7 +46,7 @@ class HelpShower(tkinter.Label):
             self.helpv.set(functionDef.help)
             return
 
-        for index, arg in enumerate(parsed.args):
+        for index, arg in enumerate(parsed.arguments):
             if arg.start <= pos <= arg.end:
                 break
         else:

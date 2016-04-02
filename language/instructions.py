@@ -76,10 +76,10 @@ class Create_subprogram(Instruction):
 class Builtin(Instruction):
     def __init__(self, name, args):
         self.name = name
-        self.args = args
+        self.arguments = args
 
     def get_token_at_pos(self, pos):
-        for arg in self.args:
+        for arg in self.arguments:
             if arg.start <= pos <= arg.end:
                 return arg.get_token_at_pos(pos)
         return None

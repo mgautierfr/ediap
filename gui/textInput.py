@@ -50,7 +50,7 @@ class LineTagger:
         start_index = "%d.%d"%(self.lineno, node.name.start)
         end_index = "%d.%d"%(self.lineno, node.name.end)
         self.text.tag_add("builtin", start_index, end_index)
-        for argument in node.args:
+        for argument in node.arguments:
             self.tag(argument)
 
     def tag_Identifier(self, node):
