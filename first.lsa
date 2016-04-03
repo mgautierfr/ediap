@@ -4,6 +4,7 @@ create subprogram house(var x, var y, var w, var h)
   ratio = 0.3
   draw_triangle(x,y+h*ratio, x+w,y+h*ratio, x+w/2,y)
   draw_rectangle(x, y+h*ratio, w, h*(1-ratio))
+  draw_line(1,1,100,100, color=Color(255,0,0))
 
 create subprogram test(var a, var b)
   draw_ellipse(x*a, b, 10, 10)

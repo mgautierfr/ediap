@@ -13,7 +13,7 @@ create subprogram tower(var x, var w)
 
   # add a flag
   change_color(0, 0, 0)
-  draw_line(x+middle, 51, x+middle, 35, 3)
+  draw_line(x+middle, 51, x+middle, 35, 3, color=Color(0, 0, 0))
   change_color(255, 255, 0)
   draw_triangle(x+middle, 44, x+middle, 36, x+middle+20, 40)
 
