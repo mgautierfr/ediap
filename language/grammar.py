@@ -47,7 +47,7 @@ def operator_char(operator_chars):
     return ret
 
 def identifier_char1():
-    return satisfies(lambda l: l.isalpha() or l == "_")
+    return satisfies(lambda l: (l.isalpha() or l == "_") and (l!= '='))
 
 def identifier_char():
     return choice(identifier_char1, digit)
@@ -92,7 +92,7 @@ def operator(chars):
 @tri
 def binaryOp():
     start = pos()
-    arg1 = term()
+    arg1 = choice(term, identifier)
     name = operator(binary_operator_chars)
     arg2 = expr()
     end = pos()
@@ -106,8 +106,14 @@ def parenthetical():
     end = pos()
     return Paren(n, start, end)
 
+def simple_identifier():
+    ident = identifier()
+    not_followed_by(p(special, '='))
+    return ident
+
+@tri
 def term():
-    return choice(parenthetical, number, identifier)
+    return choice(parenthetical, number, simple_identifier)
 
 @tri
 def expr():
@@ -147,8 +153,12 @@ def builtincall():
     name = identifier()
     special('(')
     arguments = sep(expr, p(special, ','))
+    kwords = {}
+    if optional(p(special, ','), False):
+        kwords = sep(_assignement, p(special, ','))
+        kwords = {n.v:v for n,v in kwords}
     special(')')
-    return instructions.Builtin(name, arguments)
+    return instructions.Builtin(name, arguments, kwords)
 
 @tri
 def variable_type():
@@ -179,10 +189,15 @@ def functionstmt():
     return instructions.Create_subprogram(name, arguments)
 
 @tri
-def assignement():
+def _assignement():
     name = identifier()
     special('=')
     value = expr()
+    return name, value
+
+@tri
+def assignement():
+    name, value = _assignement()
     return instructions.Set(name, value)
 
 @tri

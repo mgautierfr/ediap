@@ -289,7 +289,7 @@ class Interpreter:
         state = self.new_state(instruction.lineno, state)
         builtinClass = getattr(self.program.lib, instruction.parsed.name.v)
         # this is a builtin call
-        builtin = builtinClass(state, *instruction.parsed.args)
+        builtin = builtinClass(state, *instruction.parsed.arguments, **instruction.parsed.kwords)
         builtin.act()
         step = Step(instruction, state)
         step.add_help(instruction.lineno, builtin.get_help())

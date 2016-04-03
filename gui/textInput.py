@@ -52,6 +52,14 @@ class LineTagger:
         self.text.tag_add("builtin", start_index, end_index)
         for argument in node.arguments:
             self.tag(argument)
+        for argument in node.kwords.values():
+            self.tag(argument)
+
+    def tag_CustomToken(self, node):
+        for argument in node.arguments:
+            self.tag(argument)
+        for argument in node.kwords.values():
+            self.tag(argument)
 
     def tag_Identifier(self, node):
         def on_enter(event):
@@ -145,10 +153,33 @@ class TextModifier:
         self.token = parsed.get_token_at_pos(pos)
         self.x = event.x
         self.modifier = int_scale
-        if parsed.klass == "Builtin" and hasattr(self.program.lib, parsed.name.v):
+        if parsed.klass != "Builtin":
+            return
+        try:
             functionDef = getattr(self.program.lib, parsed.name.v)
-            if self.token in parsed.args:
-                self.modifier = functionDef.arguments[parsed.args.index(self.token)].scale
+        except AttributeError:
+            return
+        # does the token we are tagging is a "kwords one" ?
+        for name, value in instructionNode.kwords.items():
+            if self.token == value:
+                break
+        else:
+            name = None
+
+        if name :
+            # the token is a "kwords one".
+            self.modifier = functionDef.arguments[name].scale
+        else:
+            # this is a classical argument.
+            index = 0
+            for name in functionDef.arguments_order:
+                if name in instructionNode.kwords:
+                    continue
+                value = instructionNode.arguments[index]
+                if self.token == value:
+                    self.modifier = functionDef.arguments[name].scale
+                    break
+                index += 1
 
     def on_leave(self, event):
         self.text["cursor"] = ""

@@ -52,6 +52,6 @@ class HelpShower(tkinter.Label):
         else:
             index = None
         if index is not None:
-            self.helpv.set(functionDef.arguments[index].help)
+            self.helpv.set(functionDef.arguments[functionDef.arguments_order[index]].help)
             return
 
