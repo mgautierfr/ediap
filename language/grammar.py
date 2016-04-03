@@ -131,7 +131,7 @@ def term():
 
 @tri
 def expr():
-    return choice(binaryOp, functioncall, term)
+    return choice(binaryOp, term)
 
 @tri
 def reserved(name):
