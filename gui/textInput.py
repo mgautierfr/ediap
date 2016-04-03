@@ -223,13 +223,15 @@ class TextInput(tkinter.Text):
         self.program = program
 
         font = tkinter.font.Font(font=self['font'])
+        font.configure(size=11)
+        self['font'] = font
         font.configure(weight='bold')
         self.tag_configure("keyword", foreground="darkgreen", font=font)
-        self.tag_configure("builtin", foreground="darkgreen")
-        self.tag_configure("invalidSyntax", background="#FFBBBB")
-        self.tag_configure("highlihgt", background="#FFFF99")
-        self.tag_configure("number", foreground="blue")
-        self.tag_configure("comment", foreground="grey")
+        self.tag_configure("builtin", foreground="darkgreen", font=self['font'])
+        self.tag_configure("invalidSyntax", background="#FFBBBB", font=self['font'])
+        self.tag_configure("highlihgt", background="#FFFF99", font=self['font'])
+        self.tag_configure("number", foreground="blue", font=self['font'])
+        self.tag_configure("comment", foreground="grey", font=self['font'])
 
         self.textModifier = TextModifier(self.program, self)
         self.tag_bind("number", "<Enter>", self.textModifier.on_enter)
