@@ -24,21 +24,23 @@ Value = _languagenodes.Value
 
 class draw_line:
     help = "Draw a line"
-    arguments_order = ['x1', 'y1', 'x2', 'y2', 'w']
+    arguments_order = ['x1', 'y1', 'x2', 'y2', 'w', 'color']
     arguments = {'x1': IntArgument("x position of the first point"),
                  'y1': IntArgument("y position of the first point"),
                  'x2': IntArgument("x position of the second point"),
                  'y2': IntArgument("y position of the second point"),
-                 'w' : IntArgument("width of the line")
+                 'w' : IntArgument("width of the line"),
+                 'color':ColorArgument("The color of the line")
                 }
 
-    def __init__(self, state, x1, y1, x2, y2, w=None):
+    def __init__(self, state, x1, y1, x2, y2, w=None, color=None):
         self.state = state
         self.x1, self.y1, self.x2, self.y2 = (t.get_node(state.namespace) for t in (x1, y1, x2, y2))
         self.w = w.get_node(state.namespace) if w else Value(1)
+        self.color = color.get_node(state.namespace) if color else _nodes.Color(Value(0), Value(0), Value(0))
 
     def act(self):
-        self.state.context.shapes.append(_shapes.Line(self.state.lineno, self.state.context.fillColor, self.w, (self.x1, self.y1, self.x2, self.y2)))
+        self.state.context.shapes.append(_shapes.Line(self.state.lineno, self.color, self.w, (self.x1, self.y1, self.x2, self.y2)))
 
     def get_help(self):
         return [('text' , "Draw a "),
