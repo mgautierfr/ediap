@@ -26,7 +26,10 @@ class ToManyInstruction(Exception):
     pass
 
 class NamespaceDict:
-    def __init__(self, parent = None):
+    def __init__(self, builtins, constants, nodes, parent = None):
+        self.builtins = builtins
+        self.constants = constants
+        self.nodes = nodes
         self.parent = parent
         self.dict   = {}
 
@@ -35,7 +38,7 @@ class NamespaceDict:
             return self.dict[name]
         except KeyError:
             if self.parent is None:
-                raise
+                return objects.Variable(self.constants[name])
             return self.parent[name]
 
     def __setitem__(self, name, value):
@@ -46,9 +49,10 @@ class NamespaceDict:
     def __contains__(self, name):
         if name in self.dict:
             return True
-        if self.parent and name in self.parent:
-            return True
-        return False
+        if self.parent:
+            return name in self.parent
+        else:
+            return name in self.constants
 
     def keys(self):
         for key in sorted(self.dict.keys()):
@@ -59,33 +63,37 @@ class NamespaceDict:
                     yield key
 
     def clone(self):
-        clone = NamespaceDict()
+        clone = NamespaceDict(self.builtins, self.constants, self.nodes)
         if self.parent:
             clone.parent = self.parent.clone()
         clone.dict.update({k:v.clone() for k,v in self.dict.items()})
         return clone
 
+
 class State:
-    def __init__(self, lineno, context):
+    def __init__(self, lineno, context, namespace):
         self.lineno = lineno
         self.context = context
-        self.namespace = NamespaceDict()
+        self.namespace = namespace
         self.functions = {}
 
     def clone(self, lineno):
-        clone = State(lineno, self.context.__class__(self.context))
-        clone.namespace = self.namespace.clone()
+        clone = State(lineno, self.context.__class__(self.context), self.namespace.clone())
         clone.functions = dict(self.functions)
         return clone
 
     def child(self):
-        child = State(self.lineno, self.context)
-        child.namespace = NamespaceDict(self.namespace)
+        newNamespace = NamespaceDict(self.namespace.builtins,
+                                     self.namespace.constants,
+                                     self.namespace.nodes,
+                                     self.namespace
+                                    )
+        child = State(self.lineno, self.context, newNamespace)
         child.functions = dict(self.functions)
         return child
 
     def __str__(self):
-        return "<State %d\n%s\n%s\n>"%(self.lineno,self.context, self.namespace)
+        return "<State %d\n%s\n%s\n>"%(self.lineno, self.context, self.namespace)
 
 class Interpreter:
     def __init__(self, program):
@@ -95,8 +103,11 @@ class Interpreter:
 
     def new_state(self, lineno, state):
         if not state:
-            newContext = self.program.lib.Context()
-            state = State(lineno, newContext)
+            newNamespace = NamespaceDict(self.program.lib.builtins,
+                                         self.program.lib.constants,
+                                         self.program.lib.nodes
+                                        )
+            state = State(lineno, self.program.lib.Context(), newNamespace)
         else:
             state = state.clone(lineno)
         return state
@@ -287,7 +298,7 @@ class Interpreter:
 
     def do_builtin(self, instruction, pc, state):
         state = self.new_state(instruction.lineno, state)
-        builtinClass = getattr(self.program.lib, instruction.parsed.name.v)
+        builtinClass = state.namespace.builtins[instruction.parsed.name.v]
         # this is a builtin call
         builtin = builtinClass(state, *instruction.parsed.arguments, **instruction.parsed.kwords)
         builtin.act()

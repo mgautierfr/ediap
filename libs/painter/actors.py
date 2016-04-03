@@ -16,41 +16,11 @@
 # Copyright 2014 Matthieu Gautier dev@mgautier.fr
 
 from . import shapes as _shapes
-from language import nodes as _nodes
+from language import nodes as _languagenodes
+from . import nodes as _nodes
+from .arguments import *
+Value = _languagenodes.Value
 
-__all__ = ['draw_line', 'draw_rectangle', 'draw_ellipse', 'draw_quad', 'draw_triangle' , 'change_color']
-
-class _ColorNode(_nodes.Node):
-    def __init__(self, r, v, b):
-        _nodes.Node.__init__(self)
-        self.r, self.v, self.b = r, v, b
-        r.add_ref(self)
-        v.add_ref(self)
-        b.add_ref(self)
-
-    def depend(self):
-        return self.r.depend()|self.v.depend()|self.b.depend()
-
-    def get_value(self):
-        r = min(max(self.r(), 0), 255)
-        v = min(max(self.v(), 0), 255)
-        b = min(max(self.b(), 0), 255)
-        self.opositColor = "#%02x%02x%02x"%(255-r,255-v,255-b)
-        return "#%02x%02x%02x"%(r,v,b)
-
-class _IntArgument:
-    def __init__(self, help, range=(None, None), step=1):
-        self.help = help
-        self.start, self.stop = range
-        self.step = step
-
-    def scale(self, value, neg):
-        value += self.step*(1-2*neg)
-        if self.start is not None:
-            value = max(self.start, value)
-        if self.stop is not None:
-            value = min(self.stop, value)
-        return value
 
 class draw_line:
     help = "Draw a line"
@@ -204,7 +174,7 @@ class change_color:
         self.r, self.v, self.b = (token.get_node(state.namespace) for token in (r, v, b))
 
     def act(self):
-        self.state.context.fillColor = _ColorNode(self.r, self.v, self.b)
+        self.state.context.fillColor = _nodes.Color(self.r, self.v, self.b)
 
     def get_help(self):
         r, v, b = (min(max(c(), 0), 255) for c in (self.r,self.v,self.b))

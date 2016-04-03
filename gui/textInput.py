@@ -153,12 +153,18 @@ class TextModifier:
         self.token = parsed.get_token_at_pos(pos)
         self.x = event.x
         self.modifier = int_scale
-        if parsed.klass != "Builtin":
+        instructionNode = parsed.get_function_def(self.token)
+
+        if not instructionNode:
             return
-        try:
-            functionDef = getattr(self.program.lib, parsed.name.v)
-        except AttributeError:
+
+        if instructionNode.klass == "Builtin":
+            functionDef = self.program.lib.builtins[instructionNode.name.v]
+        elif instructionNode.klass =="CustomToken":
+            functionDef = self.program.lib.nodes[instructionNode.name.v]
+        else:
             return
+
         # does the token we are tagging is a "kwords one" ?
         for name, value in instructionNode.kwords.items():
             if self.token == value:

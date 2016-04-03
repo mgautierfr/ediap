@@ -25,6 +25,9 @@ class Instruction:
     def get_token_at_pos(self, pos):
         return None
 
+    def get_function_def(self, token):
+        return None
+
 class Comment(Instruction):
     is_nop = True
     def __init__(self, text):
@@ -34,7 +37,6 @@ class Create(Instruction):
     def __init__(self, type_, name):
         self.type_ = type_
         self.name = name
-
 
 class Set(Instruction):
     def __init__(self, name, value):
@@ -86,6 +88,21 @@ class Builtin(Instruction):
         for arg in self.kwords.values():
             if arg.start <= pos <= arg.end:
                 return arg.get_token_at_pos(pos)
+        return None
+
+    def get_function_def(self, token):
+        if token in self.arguments:
+            return self
+        if token in self.kwords.values():
+            return self
+        for arg in self.arguments:
+            fdef = arg.get_function_def(token)
+            if fdef:
+                return fdef
+        for arg in self.kwords.values():
+            fdef = arg.get_function_def(token)
+            if fdef:
+                return fdef
         return None
 
 class Do_subprogram(Instruction):

@@ -32,7 +32,8 @@ class Token:
     def get_token_at_pos(self, pos):
         return None
 
-
+    def get_function_def(self, token):
+        return None
 
 class Value(Token):
     def __init__(self, value, start, end):
@@ -80,6 +81,9 @@ class Identifier(Value):
     def get_help_text(self, namespace):
         return "%s(%s)"%(self.v, self.get_node(namespace)())
 
+    def __repr__(self):
+        return "<Indentifier %s>"%self.v
+
 class BinaryOp(Token):
     def __init__(self, name, x, y, start, end):
         Token.__init__(self, start, end)
@@ -114,4 +118,45 @@ class BinaryOp(Token):
 
     def get_help_text(self, namespace):
         return "%s %s %s"%(self.x.get_help_text(namespace), self.name.v, self.y.get_help_text(namespace))
+
+class CustomToken(Token):
+    def __init__(self, name, start, end, arguments, kwords):
+        Token.__init__(self, start, end)
+        self.name = name
+        self.arguments = arguments
+        self.kwords = kwords
+
+    def get_node(self, namespace):
+        return namespace.nodes[self.name.v](*(a.get_node(namespace) for a in self.arguments),
+                                **{k:v.get_node(namespace) for k,v in self.kwords.items()})
+
+    def __str__(self):
+        return "CustomToken %s"%self.name
+
+    def get_token_at_pos(self, pos):
+        for arg in self.arguments:
+            if arg.start <= pos <= arg.end:
+                return arg.get_token_at_pos(pos)
+        for arg in self.kwords.values():
+            if arg.start <= pos <= arg.end:
+                return arg.get_token_at_pos(pos)
+        return None
+
+    def get_help_text(self, namespace):
+        return "Create a color"
+
+    def get_function_def(self, token):
+        if token in self.arguments:
+            return self
+        if token in self.kwords.values():
+            return self
+        for arg in self.arguments:
+            fdef = arg.get_function_def(token)
+            if fdef:
+                return fdef
+        for arg in self.kwords.values():
+            fdef = arg.get_function_def(token)
+            if fdef:
+                return fdef
+        return None
 

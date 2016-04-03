@@ -81,6 +81,20 @@ def number():
     return type_(v, start, end)
 
 @tri
+def custom_token():
+    name = identifier()
+    special('(')
+    arguments = sep(expr, p(special, ','))
+    kwords = {}
+    if optional(p(special, ','), False):
+        kwords = sep(_assignement, p(special, ','))
+        kwords = {n.v:v for n,v in kwords}
+    special(')')
+    end = pos()
+    return CustomToken(name, name.start, end, arguments, kwords)
+
+
+@tri
 def operator(chars):
   whitespace()
   start = pos()
@@ -113,7 +127,7 @@ def simple_identifier():
 
 @tri
 def term():
-    return choice(parenthetical, number, simple_identifier)
+    return choice(parenthetical, number, custom_token, simple_identifier)
 
 @tri
 def expr():

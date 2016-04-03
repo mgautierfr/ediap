@@ -15,23 +15,6 @@
 
 # Copyright 2014 Matthieu Gautier dev@mgautier.fr
 
-class FunctionDefinition:
-    def __init__(self, name, args):
-        self.name = name,
-        self.args = args
-
-class Variable:
-    def __init__(self, value=None):
-        self.value = value
-
-    def set(self, value):
-        self.value = value
-
-    def get(self):
-        return self.value
-
-    def clone(self):
-        clone = Variable()
-        clone.value = self.value
-        return clone
+from language.tokens import Token
+from .nodes import Color
 

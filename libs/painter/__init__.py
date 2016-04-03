@@ -18,13 +18,45 @@
 import tkinter
 
 from .actors import *
-from language import nodes
+import language.nodes
+from .nodes import *
 
+class ConstantColor(language.nodes.Node):
+    def __init__(self, r, v, b):
+        language.nodes.Node.__init__(self)
+        r = min(max(r, 0), 255)
+        v = min(max(v, 0), 255)
+        b = min(max(b, 0), 255)
+        self.value = "#%02x%02x%02x"%(r,v,b)
+        self.opositeColor = "#%02x%02x%02x"%(255-r,255-v,255-b)
+
+    def depend(self):
+        return set([self])
+
+    def get_value(self):
+        return self.value
+
+builtins = {
+'draw_line' : draw_line,
+'draw_rectangle' : draw_rectangle,
+'draw_ellipse' : draw_ellipse,
+'draw_quad' : draw_quad,
+'draw_triangle' : draw_triangle,
+'change_color' : change_color
+}
+
+constants = {
+'red' : ConstantColor(255, 0, 0)
+}
+
+nodes = {
+'Color' : Color
+}
 
 class Context:
     def __init__(self, other=None):
         if other is None:
-            self.fillColor = nodes.Value("#000000")
+            self.fillColor = language.nodes.Value("#000000")
             self.fillColor.opositColor = "#FFFFFF"
             self.shapes = []
         else:
